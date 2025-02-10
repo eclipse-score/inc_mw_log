@@ -1,0 +1,891 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <help_text>Space for diagram notes</help_text>
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>1130</y>
+      <w>80</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;70.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>880</x>
+      <y>300</y>
+      <w>420</w>
+      <h>560</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::SlotDrainer
+--
+-TryFlushSlots(): amp::expected&lt;FlushResult, 
+ \ bmw::mw::log::detail::Error&gt;
+-TryFlushSpans(): amp::expected&lt;FlushResult, 
+ \ bmw::mw::log::detail::Error&gt;
+-MoreSlotsAvailableAndLoaded():bool
+-MoreSpansAvailableAndLoaded():bool
+
+-allocator_: std::unique_ptr&lt;CircularAllocator&lt;LogRecord&gt;&gt;&amp;
+-message_builder_:std::unique_ptr&lt;IMessageBuilder&gt;
+-context_mutex_:std::mutex
+-circular_buffer_:amp::circular_buffer&lt;SlotHandle, kMaxCircularBufferSize&gt;
+-current_slot_:amp::optional&lt;std::reference_wrapper&lt;const SlotHandle&gt;&gt;
+-non_blocking_writer_: NonBlockingWriter
+-limit_slots_in_one_cycle_: const std::size_t
+--
++SlotDrainer(std::unique_ptr&lt;IMessageBuilder&gt;,
+    std::unique_ptr&lt;CircularAllocator&lt;LogRecord&gt;&gt;&amp;, 
+    const std::int32_t,
+    const std::size_t,
+    std::unique_ptr&lt;bmw::os::Unistd&gt;)
++PushBack(const SlotHandle&amp;):void
++Flush():void
+--
+Responsibilities
+-- Drains slots - empties circular_buffer 
+when subsequent data has been flushed 
+-- Returns status if data was flushed or stalled
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>110</x>
+      <y>1110</y>
+      <w>320</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>mw::log::Recorder 
+--
++StartRecord(ctx:amp::string_view, ll:LogLevel): 
+    amp::optional&lt;SlotHandle&gt;
++StopRecord(slot:SlotHandle&amp;)
++Log( T data ) - family of functions
+
+--
+-backend:unique_ptr&lt;mw::log::Backend&gt;
+
+--
+Responsibilities:
+-- Opens and closes file.
+Uses formatters to serialize 
+user data and header.
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>480</x>
+      <y>1020</y>
+      <w>340</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::Backend
+{interface}
+--
++ReserveSlot(): amp::optional&lt;SlotHandle&gt;
++FlushSlot(const SlotHandle&amp;)
++GetLogRecord(const SlotHandle&amp;): LogRecord&amp;
+
+
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>880</x>
+      <y>910</y>
+      <w>420</w>
+      <h>470</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::FileOutputBackend
+{implements backend}
+--
+-buffer_allocator_: std::unique_ptr&lt;CircularAllocator&lt;LogRecord&gt;&gt;
+-slot_drainer_:SlotDrainer
+--
++FileOutputBackend(std::unique_ptr&lt;IMessageBuilder&gt;,
+    const std::int32_t,
+    std::unique_ptr&lt;CircularAllocator&lt;LogRecord&gt;&gt;,
+   std::unique_ptr&lt;bmw::os::Fcntl&gt;)
++ReserveSlot():amp::optional&lt;SlotHandle&gt;
++FlushSlotconst SlotHandle&amp;):void
++GetLogRecord(const SlotHandle&amp;): LogRecord&amp;
+--
+Responsibilities
+-- keeps statistics of dropped messages
+
+--
+Notes:
+-- Maybe running in separate thread
+-- part of configuration will be passed through
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1470</x>
+      <y>750</y>
+      <w>330</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>template &lt;typename T&gt;
+
+mw::log::detail::CircularAllocator
+--
+-claimed_sequence_:std::atomic&lt;std::size_t&gt;
+-buffer_:std::vector&lt;Slot&lt;T&gt;&gt;
+--
++CircularAllocator(std::size_t, const T&amp;)
++AcquireSlotToWrite(): amp::optional&lt;std::size_t&gt;
++GetUnderlyingBufferFor(std::size_t): T&amp;
++ReleaseSlot(std::size_t):void
++GetUsedCount():size_t
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>450</y>
+      <w>200</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>210</x>
+      <y>10</y>
+      <w>540</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::NonBlockingWriter
+--
+- InternalFlush(const uint64_t): amp::expected&lt;ssize_t, bmw::os::Error&gt;
+- unistd_: std::unique_ptr&lt;bmw::os::Unistd&gt;
+- file_handle_: std::int32_t
+- number_of_flushed_bytes_: uint64_t
+- buffer_: amp::span&lt;const std::uint8_t&gt;
+- buffer_flushed_: Result
+- max_chunk_size_: std::size_t
+--
++ NonBlockingWriter(const std::int32_t, std::size_t, std::unique_ptr&lt;bmw::os::Unistd&gt;)
++ FlushIntoFile(): amp::expected&lt;Result, bmw::mw::log::detail::Error&gt;
++ SetSpan(const amp::span&lt;const std::uint8_t&gt;&amp;): void
++ GetMaxChunkSize(): std::size_t
+--
+Responsibilities
+-- Write logs into file
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1470</x>
+      <y>350</y>
+      <w>330</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>amp::circular_buffer&lt;T=SlotHandle,MaxSize&gt;
+--
+Responsibilities
+-- stores elements of static size
+-- overwrites data when full
+-- realizes FIFO pattern
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>740</x>
+      <y>330</y>
+      <w>160</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>140.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>630</y>
+      <w>220</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;200.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>850</y>
+      <w>30</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;62.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>840</y>
+      <w>200</w>
+      <h>300</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;280.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>800</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+GetUnderlyingBufferFor()
+ReleaseSlot()</panel_attributes>
+    <additional_attributes>180.0;20.0;10.0;22.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1670</x>
+      <y>660</y>
+      <w>270</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+Created based on CircularAllocatorSize</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>900</y>
+      <w>270</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+AcquireSlotToWrite()
+GetUnderlyingBufferFor()</panel_attributes>
+    <additional_attributes>180.0;10.0;10.0;300.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>880</x>
+      <y>120</y>
+      <w>110</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>OSAL::Unistd
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>740</x>
+      <y>120</y>
+      <w>160</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>330</x>
+      <y>1020</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>OSAL::Unistd
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>740</x>
+      <y>140</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+write</panel_attributes>
+    <additional_attributes>140.0;17.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>1040</y>
+      <w>260</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+close</panel_attributes>
+    <additional_attributes>240.0;17.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>10</x>
+      <y>1020</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>OSAL::fcntl
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>70</x>
+      <y>1020</y>
+      <w>180</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+open
+SetNonBlocking / fctrl call</panel_attributes>
+    <additional_attributes>40.0;17.0;130.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>810</x>
+      <y>1040</y>
+      <w>90</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;40.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>180</x>
+      <y>730</y>
+      <w>270</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::DltMessageBuilder
+--
++DltMessageBuilder(ecu_id)
++GetNextSpan() 
+    :amp::optional&lt;
+    / amp::span&lt;const std::uint8_t&gt;&gt;
++SetNextMessage(LogRecord&amp;): void
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>480</x>
+      <y>1240</y>
+      <w>340</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::BackendLogMock
+--
++ReserveSlot(): amp::optional&lt;SlotHandle&gt;
++FlushSlot(const SlotHandle&amp;)
++GetLogRecord(const SlotHandle&amp;): LogRecord&amp;
+
+
+
+bg=pink
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>630</x>
+      <y>1130</y>
+      <w>30</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1470</x>
+      <y>1090</y>
+      <w>330</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::LogRecord 
+--
+-logEntry_:LogEntry
+-verbosePayload_:VerbosePayload
+--
+LogRecord(const std::size_t)
+getLogEntry(): LogEntry&amp;
+getLogEntry(): const LogEntry&amp;
+getVerbosePayload(): VerbosePayload&amp;
+getVerbosePayload(): const VerbosePayload&amp;
+
+
+
+bg=orange
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>360</x>
+      <y>450</y>
+      <w>250</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>/mw::log::detail::IMessageBuilder/
+--
++GetNextSpan() 
+    :amp::optional&lt;
+    / amp::span&lt;const std::uint8_t&gt;&gt;
++SetNextMessage(LogRecord&amp;): void
+--
+Responsibility:
+iterates over spans of data to be 
+serialized into output stream.
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>460</x>
+      <y>730</y>
+      <w>320</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::TextMessageBuilder
+--
++TextMessageBuilder(app_id, ecu_id, )
++GetNextSpan() 
+    :amp::optional&lt;
+    / amp::span&lt;const std::uint8_t&gt;&gt;
++SetNextMessage(log_record:LogRecord&amp;): void
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>670</y>
+      <w>160</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>280</x>
+      <y>670</y>
+      <w>200</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>180.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>560</x>
+      <y>270</y>
+      <w>180</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+Inject OSAL mock
+by constructor argument 
+with default value
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1090</x>
+      <y>750</y>
+      <w>200</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+Inject NonBlocking Writer 
+and using OSAL mock
+Configure circular buffer size
+Use MessageBuilderMock
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1590</x>
+      <y>580</y>
+      <w>200</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+using amp::circular_buffer
+not tested here
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>890</x>
+      <y>1260</y>
+      <w>180</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+Test just a glue code and
+not underlying classes
+Inject SlotDrainer with
+mocked OSAL
+Use MessageBuilderMock
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1590</x>
+      <y>950</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+Tested in data_router
+
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>400</x>
+      <y>620</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Test strategy:
+Insert the data, verify outcome
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1480</x>
+      <y>460</y>
+      <w>310</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>By design we exclude possibility of dropped
+messages in CircularBuffer because the
+size of SlotAllocator is smaller or less
+than CircularBuffer size.
+
+Size of amp::CircularBuffer
+
+
+bg=yellow
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1260</y>
+      <w>210</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>Only place that messages 
+may be dropped for the 
+reason of failure to get buffer 
+from SlotAllocatror
+
+
+bg=yellow
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>410</y>
+      <w>620</w>
+      <h>590</h>
+    </coordinates>
+    <panel_attributes>Synchronised access only: guarded by SlotDrainer context mutex.
+
+
+
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>740</x>
+      <y>1260</y>
+      <w>70</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Mock
+
+
+
+bg=green
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>600</x>
+      <y>530</y>
+      <w>300</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>280.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1530</x>
+      <y>1250</y>
+      <w>260</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Note..
+
+Used for data types 
+that differ from message to message
+
+
+bg=blue
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1860</x>
+      <y>810</y>
+      <w>190</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>template &lt;typename T&gt;
+
+mw::log::detail::Slot
+--
++ data: T
++ in_use: std::atomic&lt;bool&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1790</x>
+      <y>830</y>
+      <w>90</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=0..n</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>370</x>
+      <y>940</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>VerbosePayload
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>370</x>
+      <y>880</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>LoggingIdentifier
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>310</x>
+      <y>850</y>
+      <w>80</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;60.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>250</x>
+      <y>850</y>
+      <w>140</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>850</y>
+      <w>70</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>50.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>560</x>
+      <y>850</y>
+      <w>120</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>100.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+</diagram>

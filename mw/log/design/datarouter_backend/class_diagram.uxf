@@ -1,0 +1,1258 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <help_text>Space for diagram notes
+</help_text>
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>16</x>
+      <y>96</y>
+      <w>272</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>DataRouterBackend
+-
+- buffer_: CircularAllocator
+- message_client_: DatarouterMessageClient
+--
++ DataRouterBackend(const std::size_t,
+  const LogRecord&amp;,
+  DatarouterMessageClientFactory&amp;,
+  const Configuration&amp;,
+  WriterFactory)
++ ReserveSlot: amp::optional&lt;SlotHandle&gt;
++ FlushSlot((const SlotHandle&amp;): void
++ GetLogRecord((const SlotHandle&amp;): LogRecord&amp;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1096</y>
+      <w>248</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>mw::com::message_passing::IReceiver
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1096</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>296</x>
+      <y>360</y>
+      <w>456</w>
+      <h>232</h>
+    </coordinates>
+    <panel_attributes>SharedMemoryWriter
+--
+- shared_data: SharedData&amp;
+- alternating_writer_: WaitFreeAlternatingWriter
+- alternating_reader_: AlternatingReader
+- unmap_callback_ : UmapCallback
+- type_identifier_: atomic&lt;TypeIdentifier&gt;
+- moved_from_: bool
+--
++ SharedMemoryWriter(SharedData&amp;, UnmapCallback)
++ SharedMemoryWriter(SharedMemoryWriter&amp;&amp;)
++ GetMaxPayloadSize: Length
++ AllocAndWrite(const TimePoint, const TypeIdentifier, const Length, WriteCallback): void
++ AllocAndWrite(const TypeIdentifier, const Length, WriteCallback): void
++ AllocAndWrite(WriteCallback, const TypeIdentifier, const Length): void
++ TryRegisterType(Typeinfo): optional&lt;TypeIdentifier&gt;
++ ReadAcquire(): ReadAcquireResult
++ DetachWriter(): void
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>232</y>
+      <w>176</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Singleton&gt;&gt;
+bmw::platform::logger
+--
+- writer: SharedMemoryWriter
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>296</y>
+      <w>24</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>904</x>
+      <y>272</y>
+      <w>296</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Shared Memory&gt;&gt;
+
+SharedData
+--
++ control_block: AlternatingControlBlock
++ linear_buffer_1_offset: Length
++ number_of_drops_buffer_full: std::atomic&lt;Length&gt;
++ number_of_drops_invalid_size: std::atomic&lt;Length&gt;
++ writer_detached std::atomic&lt;bool&gt;
++ producer_pid: pid_t
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>744</x>
+      <y>368</y>
+      <w>176</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;200.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1144</y>
+      <w>248</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>mw::com::message_passing::ISender
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1144</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>16</x>
+      <y>0</y>
+      <w>128</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=.
+*mw::log*
+*Datarouter backend*
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>504</x>
+      <y>0</y>
+      <w>376</w>
+      <h>304</h>
+    </coordinates>
+    <panel_attributes>WriterFactory
+--
+- GetStaticLoggingClientFilename(const amp::string_view): std::string
+- UnlinkExistingFile(const std::string&amp;): void
+- OpenAndTruncateFile(const std::size_t, const std::string&amp;,
+  const bmw::os::Fcntl::Open): amp::optional&lt;int32_t&gt;
+- MapSharedMemory(const std::size_t, const int32_t, const std::string&amp;):
+  amp::optional&lt;void* const&gt;
+- IsMemoryAligned(void* const): bool
+- ConstructSharedData(void* const, const std::size_t): SharedData*
+
+- osal_: OsalInstances
+- mmap_result_: amp::expected&lt;void*, bmw::os::Error&gt;
+- unmap_callback_: UnmapCallback
+- identifier_: std::string
+- file_name_: std::string
+--
++ WriterFactory(OsalInstances osal)
++ Create(const std::size_t, const bool, const amp::string_view):
+  amp::optional&lt;SharedMemoryWriter&gt;
++ GetIdentifier(): std::string
++ GetFileName(): std::string
++ GetIdentifierFromFilename(const std::string&amp;): static std::string
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>592</x>
+      <y>296</y>
+      <w>80</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;creates&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>144</x>
+      <y>56</y>
+      <w>376</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;uses&gt;&gt;</panel_attributes>
+    <additional_attributes>450.0;20.0;10.0;20.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1304</x>
+      <y>32</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Fcntl
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>32</y>
+      <w>128</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1304</x>
+      <y>112</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Mman
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>72</y>
+      <w>128</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>856</x>
+      <y>512</y>
+      <w>368</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>WaitFreeAlternatingWriter
+--
++ Acquire(const Length length): amp::optional&lt;AlternatingAcquiredData&gt;
++ Release(const AlternatingAcquiredData&amp;): void
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>856</x>
+      <y>432</y>
+      <w>216</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>AlternatingReader
+--
++ Read(): amp::optional&lt;amp::span&lt;Byte&gt;&gt;
++ Switch(): void
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>744</x>
+      <y>536</y>
+      <w>128</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>744</x>
+      <y>456</y>
+      <w>128</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1304</x>
+      <y>72</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Unistd
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>48</y>
+      <w>128</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1216</x>
+      <y>592</y>
+      <w>392</w>
+      <h>208</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+
+MessagePassingFactory
+--
++ CreateReceiver(const amp::string_view,
+  concurrency::Executor&amp;,
+  const amp::span&lt;const uid_t&gt;,
+  const bmw::mw::com::message_passing::ReceiverConfig&amp;,
+  amp::pmr::memory_resource*):
+  amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::IReceiver&gt;
++ CreateSender(const amp::string_view,
+  const amp::stop_token&amp;,
+  const bmw::mw::com::message_passing::SenderConfig&amp;,
+  bmw::mw::com::message_passing::LoggingCallback,
+  amp::pmr::memory_resource*):
+  amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::ISender&gt;
+
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>744</x>
+      <y>608</y>
+      <w>64</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;&gt;
+</panel_attributes>
+    <additional_attributes>60.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>792</x>
+      <y>592</y>
+      <w>320</w>
+      <h>184</h>
+    </coordinates>
+    <panel_attributes>DatarouterMessageClientFactoryImpl
+--
+- created_once_: bool
+- config_: Configuration
+- message_passing_factory_: MessagePassingFactory
+- unistd_: bmw::os::Unistd
+- pthread_: bmw::os::Pthread
+--
++ DatarouterMessageClientFactoryImp(const Configuration&amp;,
+  std::unique_ptr&lt;MessagePassingFactory&gt;,
+  std::unique_ptr&lt;bmw::os::Unistd&gt;,
+  std::unique_ptr&lt;bmw::os::Pthread&gt;)
++ CreateOnce(const std::string&amp;,
+  const std::string&amp;):
+  std::unique_ptr&lt;DatarouterMessageClient&gt;
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>56</x>
+      <y>416</y>
+      <w>176</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+
+DatarouterMessageClient
+-
++ Run(): void
++ Shutdown(): void
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>32</x>
+      <y>256</y>
+      <w>440</w>
+      <h>400</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;480.0;530.0;480.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>464</x>
+      <y>816</y>
+      <w>624</w>
+      <h>680</h>
+    </coordinates>
+    <panel_attributes>DatarouterMessageClientImpl
+--
+- RunConnectTask(): bool
+- OnAcquireRequest(): void
+- UnlinkSharedMemoryFile(): void
+- HandleFirstMessageReceived(): void
+- RequestInternalShutdown(): void
+- CheckExitRequestAndSendConnectMessage(): void
+- BuildMessage(const DatarouterMessageIdentifier&amp;,
+const bmw::mw::com::message_passing::MediumMessagePayload&amp;): bmw::mw::com::message_passing::MediumMessage
+- SendMessage(const Message&amp;): void
+
+- run_started_: bool
+- msg_client_ids_: MsgClientIdentifiers
+- use_dynamic_datarouter_ids_: bool
+- first_message_received_: std::atomic_bool
+- utils_: MsgClientUtils
+- unlinked_shared_memory_file_: bool
+- shared_memory_writer_: SharedMemoryWriter&amp;
+- writer_file_name_: std::string
+- message_passing_factory_: std::unique_ptr&lt;MessagePassingFactory&gt;
+- monotonic_resource_buffer_: std::array&lt;uint8_t, GetMonotonicResourceSize()&gt;
+- monotonic_resource_: amp::pmr::monotonic_buffer_resource
+- stop_source_: amp::stop_source
+- thread_pool_: bmw::concurrency::ThreadPool
+- sender_: amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::ISender&gt;
+- receiver_: amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::IReceiver&gt;
+- connect_task_: bmw::concurrency::TaskResult&lt;void&gt;
+--
++ DatarouterMessageClientImpl(const MsgClientIdentifiers&amp;,
+  MsgClientBackend,
+  MsgClientUtils,
+  const amp::stop_source)
++ Run(): void
++ Shudown(): void
++ SetupReceiver(): void
++ CreateSender(): void
++ SendConnectMessage(): void
++ SetThreadName(): void
++ ConnectToDatarouter(): void
++ BlockTermSignal(): void
++ GetReceiverIdentifier(): const std::string&amp;
++ GetThisProcessPid(): const pid_t&amp;
++ GetWriterFileName(): const std::string&amp;
++ GetAppid(): const LoggingIdentifier&amp;
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>80</x>
+      <y>488</y>
+      <w>432</w>
+      <h>344</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;&gt;</panel_attributes>
+    <additional_attributes>520.0;410.0;520.0;350.0;10.0;350.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1192</y>
+      <w>248</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>mw::com::message_passing::ShortMessage
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1240</y>
+      <w>248</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>mw::com::message_passing::MediumMessage
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1192</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1240</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>840</y>
+      <w>248</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>MsgClientIdentifiers
+--
+- receiver_id_: std::string
+- this_process_id_: pid_t
+- app_id_ating_reader_: LoggingIdentifier
+- datarouter_uid_ : uid_t
+- uid_: uid_t
+--
++ MsgClientIdentifiers(const std::string&amp;,
+   const pid_t,
+   const LoggingIdentifier&amp;,
+   const uid_t,
+   const uid_t)
++ GetReceiverID(): std::string&amp;
++ GetThisProcID(): const pid_t&amp;
++ GetAppID(): const LoggingIdentifier&amp;
++ GetDatarouterUID(): uid_t
++ GetUID(): uid_t
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>928</x>
+      <y>768</y>
+      <w>80</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;creates&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>864</y>
+      <w>376</w>
+      <h>192</h>
+    </coordinates>
+    <panel_attributes>MsgClientBackend
+--
+- shared_memory_writer_: SharedMemoryWriter&amp;
+- writer_file_name_: std::string
+- message_passing_factory_: std::unique_ptr&lt;MessagePassingFactory&gt;
+- use_dynamic_datarouter_ids_ : bool
+--
++ MsgClientBackend(SharedMemoryWriter&amp;,
+  const std::string&amp;,
+  std::unique_ptr&lt;MessagePassingFactory&gt;,
+  const bool)
++ GetShMemWriter(): SharedMemoryWriter&amp;
++ GetWriterFilename(): const std::string&amp;
++ GetMsgPassingFactory(): std::unique_ptr&lt;MessagePassingFactory&gt;&amp;
++ IsUsingDynamicDatarouterIDs(): bool
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>408</x>
+      <y>936</y>
+      <w>72</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1080</y>
+      <w>376</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>MsgClientUtils
+--
+- unistd_: std::unique_ptr&lt;bmw::os::Unistd&gt;
+- pthread_: std::unique_ptr&lt;bmw::os::Pthread&gt;
+- signal_: std::unique_ptr&lt;bmw::os::Signal&gt;
+--
++ MsgClientUtils(std::unique_ptr&lt;bmw::os::Unistd&gt;,
+  std::unique_ptr&lt;bmw::os::Pthread&gt;, std::unique_ptr&lt;bmw::os::Signal&gt;)
++ GetUnistd(): bmw::os::Unistd&amp;
++ GetPthread(): bmw::os::Pthread&amp;
++ GetSignal(): bmw::os::Signal&amp;
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>456</x>
+      <y>616</y>
+      <w>296</w>
+      <h>88</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+
+DatarouterMessageClientFactory
+--
++ CreateOnce((const std::string&amp;, (const std::string&amp;):
+  std::unique_ptr&lt;DatarouterMessageClient&gt;
+
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1416</x>
+      <y>840</y>
+      <w>360</w>
+      <h>192</h>
+    </coordinates>
+    <panel_attributes>MessagePassingFactoryImpl
+--
++ CreateReceiver(const amp::string_view,
+  concurrency::Executor&amp;,
+  const amp::span&lt;const uid_t&gt;,
+  const bmw::mw::com::message_passing::ReceiverConfig&amp;,
+  amp::pmr::memory_resource*):
+  amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::IReceiver&gt;
++ CreateSender(const amp::string_view,
+  const amp::stop_token&amp;,
+  const bmw::mw::com::message_passing::SenderConfig&amp;,
+  bmw::mw::com::message_passing::LoggingCallback,
+  amp::pmr::memory_resource*):
+  amp::pmr::unique_ptr&lt;bmw::mw::com::message_passing::ISender&gt;
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1480</x>
+      <y>792</y>
+      <w>24</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;&gt;
+</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1104</x>
+      <y>608</y>
+      <w>128</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>140.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>848</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>248</x>
+      <y>256</y>
+      <w>352</w>
+      <h>576</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;&gt;&gt;&gt;</panel_attributes>
+    <additional_attributes>420.0;700.0;420.0;610.0;10.0;610.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>136</x>
+      <y>256</y>
+      <w>24</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1240</x>
+      <y>272</y>
+      <w>304</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>AlternatingControlBlock
+--
++ control_block_1: LinearControlBlock
++ control_block_1: LinearControlBlock
++ is_control_block_1_active_for_writing: std::atomic&lt;bool&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1240</x>
+      <y>384</y>
+      <w>304</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>LinearControlBlock
+--
++ data: amp::span&lt;Byte&gt;
++ acquired_index: std::atomic&lt;Length&gt;
++ written_index: std::atomic&lt;Length&gt;
++ number_of_writers: std::atomic&lt;Length&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>296</y>
+      <w>64</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;60.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1368</x>
+      <y>336</y>
+      <w>24</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1456</x>
+      <y>440</y>
+      <w>152</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>Note..
+
+using Length = std::uint64_t;
+
+
+bg=blue
+layer=1
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>304</x>
+      <y>1248</y>
+      <w>112</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Signal
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>872</x>
+      <y>32</y>
+      <w>96</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;100.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>952</x>
+      <y>32</y>
+      <w>248</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>OsalInstances
+--
++ fcntl_osal: std::unique_ptr&lt;bmw::os::Fcntl&gt;
++ unistd: std::unique_ptr&lt;bmw::os::Unistd&gt;
++ mman: std::unique_ptr&lt;bmw::os::Mman&gt;
++ stat_osal: std::unique_ptr&lt;bmw::os::Stat&gt;
++ stdlib: std::unique_ptr&lt;bmw::os::Stdlib&gt;
+
+
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1304</x>
+      <y>152</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Stat
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1304</x>
+      <y>200</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Stdlib
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>96</y>
+      <w>128</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1192</x>
+      <y>112</y>
+      <w>128</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;140.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>336</x>
+      <y>96</y>
+      <w>128</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;ainterface&gt;&gt;
+
+Backend
+-
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>280</x>
+      <y>104</y>
+      <w>72</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;&gt;
+</panel_attributes>
+    <additional_attributes>10.0;20.0;70.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>336</x>
+      <y>168</y>
+      <w>128</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>template &lt;typename T&gt;
+CircularAllocator
+-
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>280</x>
+      <y>176</y>
+      <w>72</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>312</x>
+      <y>584</y>
+      <w>64</w>
+      <h>296</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;&lt;uses&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;350.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>384</x>
+      <y>632</y>
+      <w>848</w>
+      <h>248</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;&gt;&gt;&gt;&gt;</panel_attributes>
+    <additional_attributes>1040.0;10.0;930.0;10.0;930.0;200.0;10.0;200.0;10.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>352</x>
+      <y>584</y>
+      <w>328</w>
+      <h>248</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;uses&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;170.0;390.0;170.0;390.0;290.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>672</y>
+      <w>152</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;190.0;90.0;190.0;90.0;10.0;170.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1344</y>
+      <w>200</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::concurrency::ThreadPool
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1344</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>168</x>
+      <y>1248</y>
+      <w>128</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Pthread
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1248</y>
+      <w>120</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Unistd
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>88</x>
+      <y>1216</y>
+      <w>24</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>224</x>
+      <y>1216</y>
+      <w>24</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1152</x>
+      <y>1392</y>
+      <w>272</w>
+      <h>136</h>
+    </coordinates>
+    <panel_attributes>ConnectMessageFromClient
+--
++ appid: LoggingIdentifier
++ uid: uid_t
++ use_dynamic_identifier: bool
++ random_part: std::array&lt;std::string::value_type, 6&gt;
++ operator==(const ConnectMessageFromClient&amp;,
+  const ConnectMessageFromClient&amp;): bool
++ operator!=(const ConnectMessageFromClient&amp;,
+  const ConnectMessageFromClient&amp;): bool
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1080</x>
+      <y>1408</y>
+      <w>88</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>90.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>408</x>
+      <y>1120</y>
+      <w>72</w>
+      <h>24</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>352</x>
+      <y>1216</y>
+      <w>24</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+</diagram>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>20</y>
+      <w>540</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>DataRouterRecorder
+
+--
+- LogData(const SlotHandle&amp;, const T data): void
+- SetApplicationId(LogRecord&amp;): void
+- backend_: std::unique_ptr&lt;Backend&gt;
+- config_: Configuration
+- statistics_reporter_: StatisticsReporter
+--
++ DataRouterRecorder(std::unique_ptr&lt;Backend&gt;&amp;&amp;, const Configuration&amp;)
++ StartRecord(const amp::string_view, const LogLevel): amp::optional&lt;SlotHandle&gt;
++ StopRecrod(const SlotHandle&amp;): void
++ Log(const SlotHandle&amp;, const T) - family of funtions
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view) : bool
+
+
+
+
+layer=2
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>10</x>
+      <y>120</y>
+      <w>130</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Singleton&gt;&gt;
+mw::log::Runtime
+
+
+layer=2
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>50</x>
+      <y>50</y>
+      <w>140</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+is owned by
+layer=2
+fontsize=14
+</panel_attributes>
+    <additional_attributes>20.0;70.0;20.0;20.0;120.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>300</y>
+      <w>430</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>StatisticsReporter
+--
+- recorder_: Recorder&amp;
+- report_interval_: std::chrono::seconds
+- number_of_slots_: std::size_t
+- slot_size_bytes_: std::size_t
+- no_slot_available_counter_: std::atomic&lt;std::size_t&gt;
+- message_too_long_counter_: std::atomic&lt;std::size_t&gt;
+- last_report_time_point_nanoseconds_: std::atomic&lt;std::int64_t&gt;
+- currently_reporting_: std::atomic_bool
+--
++ StatisticsReporter(Recorder&amp;, const std::chrono::seconds,
+  const std::size_t, const std::size_t)
++ IncrementNoSlotAvailable(): void
++ IncrementMessageTooLong(): voi+ g mn    d
++ Update(const std::chrono::steady_clock::time_point&amp;): void
+
+
+
+
+layer=2
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>370</x>
+      <y>240</y>
+      <w>30</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+layer=2</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>700</x>
+      <y>140</y>
+      <w>180</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+layer=2</panel_attributes>
+    <additional_attributes>10.0;10.0;160.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>670</x>
+      <y>300</y>
+      <w>390</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt; interface &gt;&gt;
+
+IStatisticsReporter
+--
++ IncrementNoSlotAvailable(): void
++ IncrementMessageTooLong(): void
++ Update(const std::chrono::steady_clock::time_point&amp;): void
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>860</x>
+      <y>120</y>
+      <w>150</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Configuration
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>330</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;&gt;
+</panel_attributes>
+    <additional_attributes>10.0;20.0;80.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>860</x>
+      <y>30</y>
+      <w>150</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>DataRouterBackend
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>700</x>
+      <y>40</y>
+      <w>180</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+layer=2</panel_attributes>
+    <additional_attributes>10.0;10.0;160.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>670</x>
+      <y>450</y>
+      <w>130</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Recorder
+--
+
+layer=2
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>590</x>
+      <y>450</y>
+      <w>100</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+uses
+</panel_attributes>
+    <additional_attributes>10.0;20.0;80.0;20.0</additional_attributes>
+  </element>
+</diagram>

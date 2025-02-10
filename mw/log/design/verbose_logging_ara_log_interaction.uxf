@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>790</x>
+      <y>260</y>
+      <w>420</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>Free Functions
+--
+bmw::mw::LogError(): bmw::mw::LogStream
+bmw::mw::LogWarn(): bmw::mw::LogStream
+bmw::mw::LogInfo(): bmw::mw::LogStream
+bmw::mw::LogDebug(): bmw::mw::LogStream
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>220</x>
+      <y>260</y>
+      <w>420</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>Free Functions
+--
+ara::log::LogError(): ara::log::LogStream
+ara::log::LogWarn(): ara::log::LogStream
+ara::log::LogInfo(): ara::log::LogStream
+ara::log::LogDebug(): ara::log::LogStream
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>630</x>
+      <y>320</y>
+      <w>180</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+facade</panel_attributes>
+    <additional_attributes>160.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+</diagram>
