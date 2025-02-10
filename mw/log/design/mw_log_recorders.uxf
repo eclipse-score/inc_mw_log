@@ -1,0 +1,693 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <help_text>Space for diagram notes</help_text>
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>80</x>
+      <y>430</y>
+      <w>620</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::TextRecorder
+--
+- backend_ : std::unique_ptr&lt;Backend&gt;
+- config_ : Configuration
+- check_log_level_for_console_: bool
+--
++ TextRecorder(const detail::Configuration&amp;,
+  std::unique_ptr&lt;detail::Backend&gt;,
+  const bool)
++ StartRecord(ctx:amp::string_view, const LogLevel): amp::optional&lt;SlotHandle&gt;
++ StopRecord(const SlotHandle&amp;): void
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view): bool
+
++ Log(const SlotHandle&amp;, T data) - family of functions
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>1280</y>
+      <w>670</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt; interface &gt;&gt;
+
+mw::log::Recorder
+--
++ StartRecord(ctx:amp::string_view, log_level:LogLevel) : amp::optional&lt;SlotHandle&gt;
++ StopRecord(slot:SlotHandle&amp;): void
++ Log(const SlotHandle&amp;, const T data) - family of functions
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view): bool
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>40</x>
+      <y>360</y>
+      <w>30</w>
+      <h>940</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;920.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>1060</y>
+      <w>440</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+
+mw::log::detail::Backend
+--
++ReserveSlot() : amp::optional&lt;SlotHandle&gt;
++FlushSlot(slot : const SlotHandle&amp;)
++GetLogRecord(slot : const SlotHandle&amp;): LogRecord&amp;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>370</y>
+      <w>440</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::FileOutputBackend
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>170</y>
+      <w>660</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::FileRecorder
+--
+- backend_ : std::unique_ptr&lt;Backend&gt;
+- config_ : Configuration
+--
++ FileRecorder(const detail::Configuration&amp;,
+  std::unique_ptr&lt;detail::Backend&gt;)
++ StartRecord(ctx:amp::string_view, const LogLevel): amp::optional&lt;SlotHandle&gt;
++ StopRecord(const SlotHandle&amp;): void
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view): bool
+
++ Log(const SlotHandle&amp;, T data) - family of functions
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>80</x>
+      <y>640</y>
+      <w>30</w>
+      <h>660</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;640.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>580</x>
+      <y>0</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>OSAL::Unistd
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>20</y>
+      <w>140</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+close</panel_attributes>
+    <additional_attributes>120.0;17.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>270</x>
+      <y>0</y>
+      <w>110</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>OSAL::fcntl
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>330</x>
+      <y>20</y>
+      <w>230</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+open
+SetNonBlocking / fctrl call</panel_attributes>
+    <additional_attributes>10.0;17.0;210.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>460</x>
+      <y>1190</y>
+      <w>240</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::RecorderMock
+
+
+bg=pink
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>540</x>
+      <y>1230</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1170</x>
+      <y>840</y>
+      <w>30</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;220.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>230</y>
+      <w>440</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>DltArgumentCounter
+--
+- counter_ : std::uint8_t&amp;
+--
+DltArgumentCounter(std::uint8_t&amp;)
+--
++ TryAddArgument(add_argument_callback) : AddArgumentResult
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>180</y>
+      <w>150</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>240</y>
+      <w>150</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;300.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>0</y>
+      <w>440</w>
+      <h>210</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::TextFormat
+--
+_+ PutFormattedTime(VerbosePayload&amp;) : void_
+_+ TerminateLog(VerbosePayload&amp;) : void_
+_+ Log(VerbosePayload&amp;, const T, const IntegerRepresentation) : void_
+  - family of functions
+_+ Log(VerbosePayload&amp;, const T) : void_
+  - family of functions
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>640</x>
+      <y>80</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+Log</panel_attributes>
+    <additional_attributes>180.0;17.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>680</x>
+      <y>110</y>
+      <w>160</w>
+      <h>340</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+Log</panel_attributes>
+    <additional_attributes>140.0;17.0;10.0;320.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>580</y>
+      <w>380</w>
+      <h>270</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::SlogBackend
+--
+- app_id_: std:;string
+- buffer_: CircularAllocator&lt;mw::log::detail::LogRecord&gt;
+- slog_buffer_: slog2_buffer_t
+- slog_buffer_config_: slog2_buffer_set_config_t
+- slog2_instance_: std::unique_ptr&lt;bmw::os::qnx::Slog2&gt;
+--
++ SlogBackend(const std::size_t,
+  const LogRecord&amp;,
+  const amp::string_view,
+  std::unique_ptr&lt;bmw::os::qnx::Slog2&gt;)
++ ReserveSlot(): amp::optional&lt;SlotHandle&gt;
++ FlushSlot(const SlotHandle&amp;): void
++ GetLogRecord(const SlotHandle&amp;): LogRecord&amp;
+--
+- Init(verbosity: std::uint8_t) : void
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1230</x>
+      <y>410</y>
+      <w>30</w>
+      <h>670</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;650.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>120</x>
+      <y>710</y>
+      <w>580</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::DataRouterRecorder
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>120</x>
+      <y>760</y>
+      <w>30</w>
+      <h>540</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;520.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>190</x>
+      <y>1030</y>
+      <w>510</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::EmptyRecorder
+--
++ StartRecord(const amp::string_view, const LogLevel):
+  amp::optional&lt;SlotHandle&gt;
++ StopRecord(const SlotHandle&amp;): void
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view): bool
+
++ Log(const SlotHandle&amp;	, T data) - family of functions
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>350</x>
+      <y>1150</y>
+      <w>30</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;130.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>270</x>
+      <y>1420</y>
+      <w>420</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Note..
+bg=blue
+
+Refer Recorder.h for all the Log(const SlotHandle&amp;, const T data)
+- family of functions
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>900</y>
+      <w>240</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::DataRouterBackend
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>940</y>
+      <w>30</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;120.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>740</y>
+      <w>150</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;180.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>220</y>
+      <w>150</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;170.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>610</y>
+      <w>150</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>140</x>
+      <y>810</y>
+      <w>560</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::CompositeRecorder
+--
+- recorders_ : std::vector&lt;std::unique_ptr&lt;Recorder&gt;&gt;
+--
++ CompositeRecorder(std::vector&lt;std::unique_ptr&lt;Recorder&gt;&gt; recorders)
++ StartRecord(const amp::string_view, const LogLevel): amp::optional&lt;SlotHandle&gt;
++ StopRecord(slot:SlotHandle&amp;): void
++ GetRecorders(): std::vector&lt;std::unique_ptr&lt;Recorder&gt;&gt;&amp;
++ IsLogEnabled(const LogLevel&amp;, const amp::string_view): bool
+
++ Log(const SlotHandle&amp;, const T) - family of functions
+
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>980</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::BackendMock
+
+
+bg=pink
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>890</x>
+      <y>1020</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;40.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>980</y>
+      <w>30</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;300.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1000</x>
+      <y>120</y>
+      <w>250</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>Note..
+bg=blue
+
+Refer text_format.h for all the Log(...)
+- family of functions
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>170</y>
+      <w>150</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;300.0;130.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>450</y>
+      <w>380</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::DLTFormat
+--
+
++ Log(VerbosePayload&amp;, const bool): AddArgumentResult
++ Log(VerbosePayload&amp;, T, const IntegerRepresentation):
+   AddArgumentResult - family of functions
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>510</y>
+      <w>150</w>
+      <h>250</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>130.0;17.0;10.0;230.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>330</y>
+      <w>150</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>130.0;197.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>580</y>
+      <w>230</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>template &lt;typename T&gt;
+
+mw::log::detail::CircularAllocator
+--
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1190</x>
+      <y>610</y>
+      <w>110</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>690</y>
+      <w>230</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>mw::log::detail::LogRecord 
+--
+
+
+
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1190</x>
+      <y>690</y>
+      <w>110</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+uses</panel_attributes>
+    <additional_attributes>10.0;20.0;90.0;20.0</additional_attributes>
+  </element>
+</diagram>

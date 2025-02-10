@@ -1,0 +1,53 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><help_text>Space for diagram notes</help_text><element><id>UMLClass</id><coordinates><x>420</x><y>80</y><w>250</w><h>120</h></coordinates><panel_attributes>&lt;&lt;POD&gt;&gt;
+LinearControlBlock
+--
++ data: span&lt;byte&gt;
++ acquired_index: atomic_int
++ written_index: atomic_int
++ number_of_writers: atomic_int
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>120</x><y>280</y><w>410</w><h>120</h></coordinates><panel_attributes>WaitFreeLinearWriter
+--
++ WaitFreeLinearWriter(control_block: LinearControlBlock&amp;)
++ Acquire(length): optional&lt;AcquiredData &gt;
++ Release(AcquiredData): void
+
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>450</x><y>190</y><w>50</w><h>110</h></coordinates><panel_attributes>lt=&lt;-
+uses</panel_attributes><additional_attributes>10;10;10;90</additional_attributes></element><element><id>UMLClass</id><coordinates><x>580</x><y>280</y><w>340</w><h>120</h></coordinates><panel_attributes>LinearReader
+--
++ LinearReader(span&lt;Byte&gt;&amp; data)
++ Read(): optional&lt;span&lt;Byte&gt; &gt;
+
+
+
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>600</x><y>190</y><w>50</w><h>110</h></coordinates><panel_attributes>lt=&lt;-
+uses</panel_attributes><additional_attributes>10;10;10;90</additional_attributes></element><element><id>UMLClass</id><coordinates><x>400</x><y>440</y><w>300</w><h>120</h></coordinates><panel_attributes>&lt;&lt;POD&gt;&gt;
+AlternatingControlBlock
+--
++ linear_control_block_1: LinearControlBlock
++ linear_control_block_2: LinearControlBlock
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>540</x><y>190</y><w>30</w><h>270</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;250;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>90</x><y>620</y><w>470</w><h>120</h></coordinates><panel_attributes>WaitFreeAlternatingWriter
+--
++ WaitFreeAlternatingWriter(control_block: AlternatingControlBlock&amp;)
++ Acquire(length): optional&lt;AcquiredData &gt;
++ Release(AcquiredData): void
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>610</x><y>620</y><w>440</w><h>120</h></coordinates><panel_attributes>AlternatingReader
+--
++ AlternatingReader(AlternatingControlBlock&amp; data)
++ Read(): optional&lt;span&lt;Byte&gt; &gt;
++ Switch()
+
+
+bg=white
+fontsize=14</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>330</x><y>390</y><w>30</w><h>250</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;230;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>480</x><y>550</y><w>50</w><h>90</h></coordinates><panel_attributes>lt=&lt;-
+uses</panel_attributes><additional_attributes>10;10;10;70</additional_attributes></element><element><id>Relation</id><coordinates><x>620</x><y>550</y><w>50</w><h>90</h></coordinates><panel_attributes>lt=&lt;-
+uses</panel_attributes><additional_attributes>10;10;10;70</additional_attributes></element><element><id>Relation</id><coordinates><x>810</x><y>390</y><w>30</w><h>250</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;230;10;10</additional_attributes></element></diagram>

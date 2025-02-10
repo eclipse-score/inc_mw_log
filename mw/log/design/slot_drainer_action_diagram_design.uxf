@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <type>com.baselet.element.old.allinone.ActivityDiagramText</type>
+    <coordinates>
+      <x>520</x>
+      <y>48</y>
+      <w>558</w>
+      <h>814</h>
+    </coordinates>
+    <panel_attributes>title:Slot disposal diagram
+bg=orange
+Start
+Flush slot\     call
+circular_buffer.push(LogRecord&amp;)
+
+While[circular_buffer not empty]
+	get_next_slot
+	While[next span available]
+		get_next_span
+		write_file
+		If
+			[would block]-&gt;exit
+
+			[all data written]
+	Load number of buffers flushed
+	If 
+		[limit reached]-&gt;exit
+		
+		[within limit]
+exit~exit
+End
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>528</x>
+      <y>128</y>
+      <w>536</w>
+      <h>728</h>
+    </coordinates>
+    <panel_attributes>SlotDrainer
+--
+bg=orange</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>704</x>
+      <y>256</y>
+      <w>352</w>
+      <h>320</h>
+    </coordinates>
+    <panel_attributes>NonBlockingWriter
+--
+bg=#3c7a00
+layer=2</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

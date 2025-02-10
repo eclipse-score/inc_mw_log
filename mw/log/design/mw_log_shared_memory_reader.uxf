@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>680</x>
+      <y>130</y>
+      <w>510</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>ReaderFactoryImpl
+
+--
+- mman_: bmw::os::Mman&amp;
+- stat_: bmw::os::Stat
+--
++ Create(const std::int32_t, const pid_t): amp::optional&lt;SharedMemoryReader&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>130</y>
+      <w>510</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+
+ReaderFactory
+--
++ Create(const std::int32_t, const pid_t): amp::optional&lt;SharedMemoryReader&gt;
++ Default(): std::unique_ptr&lt;ReaderFactory&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>570</x>
+      <y>160</y>
+      <w>130</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>920</x>
+      <y>230</y>
+      <w>90</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt;creates&gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>680</x>
+      <y>340</y>
+      <w>510</w>
+      <h>430</h>
+    </coordinates>
+    <panel_attributes>SharedMemoryReader
+
+--
+- shared_data_: SharedData&amp;
+- buffer1_: const amp::span&lt;Byte&gt;
+- buffer2_: const amp::span&lt;Byte&gt;
+- unmap_callback_: UnmapCallback
+- acquired_data_: amp::optional&lt;ReadAcquireResult&gt;
+- number_of_acquired_bytes_: Length
+- finished_reading_after_detach_: bool
+- is_buffer1_expected_to_read_next_: bool
+- is_writer_detached_: bool
+
+- CreateReaderForBuffer(const bool): LinearReader
+- ReadAcquiredData(const TypeRegistrationCallback&amp;,
+  const NewRecordCallback&amp;)
+--
++ SharedMemoryReader(const SharedData&amp;, const amp::span&lt;Byte&gt;,
+  const amp::span&lt;Byte&gt;, UnmapCallback)
++ Read(const TypeRegistrationCallback&amp;, const NewRecordCallback&amp;): void
++ NotifyAcquisition(const ReadAcquireResult&amp;): void
++ DetachWriter(): void
++ GetNumberOfDropsWithBufferFull(): Length
++ GetNumberOfDropsWithInvalidSize(): Length
++ GetRingBufferSizeBytes(): Length
++ GetNumberOfAcquiredBytes(): Length
++ IsWriterDetached(): bool
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>310</y>
+      <w>160</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Shared Memory&gt;&gt;
+
+SharedData
+--
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1180</x>
+      <y>370</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>10</x>
+      <y>780</y>
+      <w>1710</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;1690.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>70</x>
+      <y>950</y>
+      <w>500</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>DataRouter
+--
+- subscriberDatabase_: SubscriberDatabase
+- databaseCallback_ : WriteSubscriberDatabaseCallback
+--
++ new_source_session(): SessionPtr
++ new_subscriber_session(): SessionPtr</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>250</x>
+      <y>230</y>
+      <w>80</w>
+      <h>740</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;720.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>130</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Mman
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>200</y>
+      <w>160</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>bmw::os::Stat
+--
+fontsize=14
+bg=white</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1180</x>
+      <y>120</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1180</x>
+      <y>190</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>830</y>
+      <w>200</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=.
+*bmw::platform::datarouter*
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>30</x>
+      <y>30</y>
+      <w>160</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=.
+*mw::log*
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1280</x>
+      <y>450</y>
+      <w>290</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>LinearReader
+--
+- data_: amp::span&lt;Byte&gt;
+- read_index_: Length
+--
++ LinearReader(const amp::span&lt;Byte&gt;&amp;)
++ Read(): amp::optional&lt;amp::span&lt;Byte&gt;&gt;
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1180</x>
+      <y>460</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+</diagram>
