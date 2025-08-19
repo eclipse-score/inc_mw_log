@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "src/mw_log"
+]
+resolver = "2"
+
+[workspace.dependencies]
+
