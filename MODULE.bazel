@@ -11,8 +11,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 module(
-    name = "cpp_rust_template_repository",
-    version = "1.0",
+    name = "score-mw-log",
+    version = "0.1",
 )
 
 bazel_dep(name = "rules_python", version = "1.4.1")
@@ -27,7 +27,7 @@ python.toolchain(
 use_repo(python)
 
 # Add GoogleTest dependency
-bazel_dep(name = "googletest", version = "1.14.0")
+bazel_dep(name = "googletest", version = "1.15.0")
 
 # Rust rules for Bazel
 bazel_dep(name = "rules_rust", version = "0.56.0")
@@ -41,17 +41,18 @@ bazel_dep(name = "score_starpls_lsp", version = "0.1.0")
 bazel_dep(name = "rules_cc", version = "0.1.1")
 
 # LLVM Toolchains Rules - host configuration
-bazel_dep(name = "toolchains_llvm", version = "1.2.0")
+bazel_dep(name = "toolchains_llvm", version = "1.3.0")
 
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-    cxx_standard = {"": "c++17"},
-    llvm_version = "19.1.0",
+# Configure and register the toolchain.
+bazel_dep(name = "score_toolchains_gcc", version = "0.4", dev_dependency=True)
+gcc = use_extension("@score_toolchains_gcc//extentions:gcc.bzl", "gcc", dev_dependency=True)
+gcc.toolchain(
+    url = "https://github.com/eclipse-score/toolchains_gcc_packages/releases/download/0.0.1/x86_64-unknown-linux-gnu_gcc12.tar.gz",
+    sha256 = "457f5f20f57528033cb840d708b507050d711ae93e009388847e113b11bf3600",
+    strip_prefix = "x86_64-unknown-linux-gnu",
 )
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
 
-register_toolchains("@llvm_toolchain//:all")
+use_repo(gcc, "gcc_toolchain", "gcc_toolchain_gcc")
 
 # Dash license checker
 bazel_dep(name = "score_dash_license_checker", version = "0.1.2")
@@ -63,3 +64,20 @@ bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
 #docs-as-code
 bazel_dep(name = "score_docs_as_code", version = "1.0.1")
+
+# Dev
+
+# Has to be done since baselib have this as dep without version.
+bazel_dep(name = "rules_boost", repo_name = "com_github_nelhage_rules_boost")
+archive_override(
+    module_name = "rules_boost",
+    strip_prefix = "rules_boost-master",
+    urls = ["https://github.com/nelhage/rules_boost/archive/refs/heads/master.tar.gz"],
+)
+
+bazel_dep(name = "score-baselibs", version = "0.1.0")
+git_override(
+    module_name = "score-baselibs",
+    commit = "46923f5",  # or use "tag" or "branch"
+    remote = "https://github.com/eclipse-score/baselibs.git",
+)
