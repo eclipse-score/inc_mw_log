@@ -60,7 +60,7 @@ impl MwLoggerBuilder {
     }
 
     /// Sets the context for currently build logger.
-    pub fn context(mut self, context: &str) -> Self {
+    pub fn with_context(mut self, context: &str) -> Self {
         self.context = Some(CString::new(context).expect(
             "Failed to create CString:
              input contains null bytes",
@@ -69,6 +69,10 @@ impl MwLoggerBuilder {
     }
 }
 
+/// A simple buffer writer that implements `core::fmt::Write`
+/// and writes into a fixed-size(`BUF_SIZE) buffer.
+/// Used in `Log` implementation to format log messages
+/// before passing them to the underlying C++ logger.
 struct BufWriter<const BUF_SIZE: usize> {
     buf: [MaybeUninit<u8>; BUF_SIZE],
     pos: usize,
@@ -83,14 +87,17 @@ impl<const BUF_SIZE: usize> BufWriter<BUF_SIZE> {
     }
 
     /// Returns a slice to filled part of buffer. This is not null-terminated.
-    fn as_c_str(&self) -> &[c_char] {
+    fn as_slice(&self) -> &[c_char] {
+        // SAFETY: We only expose already initialized part of the buffer
         unsafe { core::slice::from_raw_parts(self.buf.as_ptr().cast::<c_char>(), self.len()) }
     }
 
+    /// Returns the current length of the filled part of the buffer.
     fn len(&self) -> usize {
         self.pos
     }
 
+    /// Reverts the current position (consumes) by `cnt` bytes, saturating at 0.
     fn revert_pos(&mut self, cnt: usize) {
         self.pos = self.pos.saturating_sub(cnt);
     }
@@ -142,15 +149,15 @@ pub struct MwLogger {
     log_fn: fn(&mut BufWriter<MSG_SIZE>, &Record),
 }
 
-// SAFETY: The underlying C++ logger is assumed to be safe to change thread
+// SAFETY: The underlying C++ logger is known to be safe to change thread
 unsafe impl Send for MwLogger {}
 
-// SAFETY: The underlying C++ logger is assumed to be thread-safe.
+// SAFETY: The underlying C++ logger is known to be thread-safe.
 unsafe impl Sync for MwLogger {}
 
 impl MwLogger {
     fn write_log(&self, level: Level, msg: &BufWriter<MSG_SIZE>) {
-        let slice = msg.as_c_str();
+        let slice = msg.as_slice();
 
         unsafe {
             match level {

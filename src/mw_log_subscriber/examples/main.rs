@@ -60,7 +60,7 @@ fn main() {
 
     // Using logger instance with context
     let logger = MwLoggerBuilder::new()
-        .context("ALFA")
+        .with_context("ALFA")
         .build::<false, true, false>();
 
     trace!(
