@@ -1,0 +1,47 @@
+# Copyright 2025 Accenture
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+jobs:
+  bazel-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bazelbuild/setup-bazelisk@v3
+
+      - uses: actions/cache@v4
+        with:
+          path: "~/.cache/bazel"
+          key: bazel
+
+      - name: Build all workspace targets
+        run: bazel build //...
+
+      - name: Lint rust code (with clippy)
+        run: bazel build --config=lint-rust //...
+
+  cargo-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.83.0
+          components: clippy, rustfmt
+
+      - run: cargo clippy --all-features
+
+      - run: cargo fmt --check
+
+      - run: cargo build

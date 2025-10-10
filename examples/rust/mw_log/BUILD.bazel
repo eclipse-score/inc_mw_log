@@ -1,0 +1,28 @@
+# Copyright 2025 Accenture.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+load("@cargo//:defs.bzl", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+rust_library(
+    name = "mw_log",
+    srcs = glob(["src/**/*.rs"]),
+    deps = all_crate_deps(
+        normal = True,
+    ) + [":libmw_log_cc"],
+)
+
+cc_library(
+    name = "libmw_log_cc",
+    srcs = [
+        "src/ffi.cc",
+        "src/mw_log.cc",
+    ],
+    hdrs = [
+        "src/include/mw_log.h",
+    ],
+    includes = [
+        "src/include",
+    ],
+)

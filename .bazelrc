@@ -1,0 +1,7 @@
+# Copyright 2025 Accenture.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+build:lint-rust --aspects=@rules_rust//rust:defs.bzl%rust_clippy_aspect
+build:lint-rust --output_groups=+clippy_checks
+build:lint-rust --@rules_rust//:clippy.toml=//:clippy.toml

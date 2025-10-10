@@ -1,0 +1,11 @@
+# Copyright 2025 Accenture.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+[workspace]
+members = ["examples/rust/mw_log"]
+resolver = "2"
+
+[workspace.dependencies]
+cc = "1.2.16"
+log = "0.4.26"
