@@ -1,0 +1,928 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <help_text>Space for diagram notes</help_text>
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>820</x>
+      <y>30</y>
+      <w>420</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+bmw:mw::log::Recorder
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>720</x>
+      <y>150</y>
+      <w>290</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>TextRecorder
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>350</x>
+      <y>150</y>
+      <w>320</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>DataRouterRecorder
+--
+- configuration: bmw::mw::log::Configuration
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1050</x>
+      <y>150</y>
+      <w>290</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>FileRecorder
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1390</x>
+      <y>150</y>
+      <w>290</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Empty
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>80</y>
+      <w>530</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>510.0;10.0;510.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>870</x>
+      <y>80</y>
+      <w>190</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>170.0;10.0;170.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>80</y>
+      <w>180</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;160.0;40.0;160.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>80</y>
+      <w>540</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;520.0;40.0;520.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>870</x>
+      <y>250</y>
+      <w>350</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>RecorderComposite
+--
+RecorderComposite(recorders: vector&lt;Recorder&gt;)
+--
+recorders_: vector&lt;Recorder&gt;
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>80</y>
+      <w>30</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;170.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>320</y>
+      <w>520</w>
+      <h>890</h>
+    </coordinates>
+    <panel_attributes>bmw::mw::log::Configuration
+--
+- ecu_id_:  LoggingIdentifier
+- app_id_:  LoggingIdentifier
+- app_description_: std::string
+- log_mode_: std::unordered_set&lt;LogMode&gt;
+- log_file_path_: std::string
+- default_log_level_: LogLevel
+- default_console_log_level_: LogLevel
+- context_log_level_: ContextLogLevelMap
+- stack_buffer_size_: std::size_t
+- ring_buffer_size_: std::size_t
+- ring_buffer_overwrite_on_full_: bool
+- number_of_slots_: std::size_t
+- slot_size_bytes_: std::size_t
+- data_router_uid_: std::size_t
+- dynamic_datarouter_identifiers_: bool
+--
++ Configuration()
++ GetEcuId(): amp::string_view
++ SetEcuId(const amp::string_view): void
++ GetAppId(): amp::string_view
++ SetAppId(const amp::string_view): void
++ GetAppDescription(): amp::string_view
++ SetAppDescription(const amp::string_view): void
++ GetLogMode(): const std::unordered_set&lt;LogMode&gt;&amp;
++ SetLogMode(const std::unordered_set&lt;LogMode&gt;&amp;): void
++ GetLogFilePath(): amp::string_view
++ SetLogFilePath(const amp::string_view): void
++ GetDefaultLogLevel(): LogLevel
++ SetDefaultLogLevel(const LogLevel): void
++ GetDefaultConsoleLogLevel(): LogLevel
++ SetDefaultConsoleLogLevel(const LogLevel): void
++ GetContextLogLevel(): ContextLogLevelMap&amp;
++ SetContextLogLevel(const ContextLogLevelMap&amp;): void
++ GetStackBufferSize(): std::size_t
++ SetStackBufferSize(const std::size_t stack_buffer_size)
++ GetRingBufferSize(): std::size_t
++ SetRingBufferSize(const std::size_t ring_buffer_size): void
++ GetRingBufferOverwriteOnFull(): bool
++ SetRingBufferOverwriteOnFull(const bool): void
++ GetNumberOfSlots(): std::size_t
++ SetNumberOfSlots(const std::size_t number_of_slots): void
++ GetSlotSizeInBytes(): std::size_t
++ SetSlotSizeInBytes(const std::size_t slot_size_bytes): void
++ SetDataRouterUid(const std::size_t uid): void
++ GetDataRouterUid(): std::size_t
++ GetDynamicDatarouterIdentifiers(): bool
++ SetDynamicDatarouterIdentifiers(const bool enable_dynamic_identifier): void
++ IsLogLevelEnabled(const LogLevel&amp; log_level,
+                           const amp::string_view context,
+                           const bool check_for_console = false): bool
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>860</x>
+      <y>800</y>
+      <w>430</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>TargetConfigReader
+--
++ TargetConfigReader(discoverer: IConfigurationFileDiscoverer)
++ ReadConfig(): bmw::Result&lt;Configuration&gt;
+--
+discoverer_: unique_ptr&lt;IConfigurationFileDiscovery&gt;
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>860</x>
+      <y>910</y>
+      <w>70</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>50.0;180.0;10.0;180.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>870</y>
+      <w>350</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+creates</panel_attributes>
+    <additional_attributes>10.0;20.0;330.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>860</x>
+      <y>380</y>
+      <w>410</w>
+      <h>310</h>
+    </coordinates>
+    <panel_attributes>RecorderFactory
+--
+- GetRemoteRecorder(const Configuration&amp;):
+  std::unique_ptr&lt;Recorder&gt;
+- GetFileRecorder(const Configuration&amp; config
+  const std::unique_ptr&lt;bmw::os::Fcntl&gt;&amp;):
+  std::unique_ptr&lt;Recorder&gt;
+- GetConsoleRecorder(const Configuration&amp;):
+  std::unique_ptr&lt;Recorder&gt;
+--
++ CreateFromConfiguration(): std::unique_ptr&lt;Recorder&gt;
++ CreateFromConfiguration(
+  const std::unique_ptr&lt;const ITargetConfigReader&gt;):
+  std::unique_ptr&lt;Recorder&gt;
++ CreateWithConsoleLoggingOnly(): std::unique_ptr&lt;Recorder&gt;
++ CreateStub(): std::unique_ptr&lt;Recorder&gt;
++ CreateRecorderFromLogMode(
+  const LogMode&amp;,
+  const Configuration&amp;,
+  const std::unique_ptr&lt;bmw::os::Fcntl&gt;)
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>680</y>
+      <w>60</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>10.0;120.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>560</x>
+      <y>240</y>
+      <w>290</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>Forwards the logs to all recorders in the list
+passed in the constructor.
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>560</x>
+      <y>320</y>
+      <w>280</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>CreateForTarget(): Loads the configuration 
+and  instantiates the requested 
+recorder types.
+
+CreateForUnitTests(): Prepares a recorder
+that puts logs in standard output stream
+for unit testing.
+
+CreateStub(): Returns Empty recorder that 
+discards all the logs.
+
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>560</x>
+      <y>510</y>
+      <w>280</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>Reads config from
+/opt/&lt;app&gt;/etc/logging.json
+and /ecu/logging.json and creates the
+Configuration object.
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>910</x>
+      <y>1040</y>
+      <w>310</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>bmw::json
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>460</x>
+      <y>190</y>
+      <w>60</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+owns</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1030</x>
+      <y>330</y>
+      <w>70</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+creates</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1430</x>
+      <y>440</y>
+      <w>220</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>bmw::mw::log::detail::Runtime
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1260</x>
+      <y>1370</y>
+      <w>290</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>bmw::os
+--
+
+bg=white
+fontsize=14
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1260</x>
+      <y>430</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+Uses on initialization</panel_attributes>
+    <additional_attributes>10.0;20.0;170.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>840</x>
+      <y>270</y>
+      <w>50</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;30.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>830</x>
+      <y>420</y>
+      <w>50</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;30.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>460</x>
+      <y>170</y>
+      <w>370</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>350.0;10.0;350.0;60.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>800</x>
+      <y>170</y>
+      <w>370</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>350.0;10.0;350.0;60.0;10.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1140</x>
+      <y>700</y>
+      <w>320</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+ITargetConfigReader
+--
+/+ ReadConfig(): bmw::Result&lt;Configuration&gt; = 0/
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1160</x>
+      <y>760</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1320</x>
+      <y>800</y>
+      <w>360</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>TargetConfigReaderMock
+
+bg=white
+fontsize=14
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1370</x>
+      <y>760</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1320</x>
+      <y>860</y>
+      <w>310</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>Used for unit testing the RecorderFactory.
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1430</x>
+      <y>830</y>
+      <w>30</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1290</x>
+      <y>960</y>
+      <w>480</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+
+IConfigurationFileDiscoverer
+--
+/+FindConfigurationFiles(): vector&lt;string&gt;/
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1240</x>
+      <y>1140</y>
+      <w>330</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>ConfigurationFileDiscoverer
+
+--
+- path_: std::unique_ptr&lt;os::Path&gt;
+- stdlib_: std::unique_ptr&lt;os::Stdlib&gt;
+- unistd_: std::unique_ptr&lt;os::Unistd&gt;
+--
++ ConfigurationFileDiscoverer(
+  std::unique_ptr&lt;os::Path&gt;&amp;&amp;,
+  std::unique_ptr&lt;os::Stdlib&gt;&amp;&amp;,
+  std::unique_ptr&lt;os::Unistd&gt;&amp;&amp;)
++ FindConfigurationFiles(): std::vector&lt;std::string&gt;	
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1320</x>
+      <y>1040</y>
+      <w>30</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1320</x>
+      <y>1320</y>
+      <w>60</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1610</x>
+      <y>1080</y>
+      <w>240</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>ConfigurationFileDiscovererMock
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1650</x>
+      <y>1040</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1120</x>
+      <y>910</y>
+      <w>190</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;70.0;170.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1230</x>
+      <y>50</y>
+      <w>640</w>
+      <h>410</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+owns instance of</panel_attributes>
+    <additional_attributes>290.0;390.0;290.0;360.0;520.0;360.0;520.0;20.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1620</x>
+      <y>1140</y>
+      <w>380</w>
+      <h>240</h>
+    </coordinates>
+    <panel_attributes>Finds the file paths to the global, environmental and 
+application configuration files and returns all that exists.
+
+Global configuration:
+1. /etc/ecu_logging_config.json if it exists.
+
+Environmental configuration:
+1. path under the MW_LOG_CONFIG_FILE environmental
+variable if it defined
+
+Application configuration:
+1. &lt;cwd&gt;/etc/logging.json
+2. &lt;cwd&gt;/logging.json
+3. &lt;binary path&gt;/../etc/logging.json
+
+
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1560</x>
+      <y>1150</y>
+      <w>80</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1270</x>
+      <y>1400</y>
+      <w>270</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>utils/path
+--
+_+get_exec_path(): Result&lt;string&gt;_
+_+get_parent_dir(): string_
+
+bg=white
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>910</x>
+      <y>960</y>
+      <w>250</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>
+Dependency injection for unit testing.
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1270</x>
+      <y>1480</y>
+      <w>100</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Unistd
+--
++ access()
+
+bg=white
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>920</x>
+      <y>1090</y>
+      <w>290</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>--
++ FromFile(path): Result&lt;bmw::json::Any&gt;
+
+bg=white
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>360</x>
+      <y>20</y>
+      <w>170</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Configuration passed 
+the constructor by value.
+bg=yellow
+layer=0</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>440</x>
+      <y>60</y>
+      <w>30</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>150</y>
+      <w>320</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>CompositeRecorder
+--
+- config_: bmw::mw::log::detail::Configuration
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>80</y>
+      <w>900</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>880.0;10.0;880.0;40.0;10.0;40.0;10.0;70.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>160</x>
+      <y>190</y>
+      <w>330</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0;310.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1390</x>
+      <y>1480</y>
+      <w>100</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>Stdlib
+--
++ getenv()
+
+bg=white
+fontsize=14
+layer=1</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>610</x>
+      <y>1170</y>
+      <w>490</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>LoggingIdentifier
+
+--
++ LoggingIdentifier(const amp::string_view)
++ GetStringView(): amp::string_view
++ friend operator==(const LoggingIdentifier&amp;, const LoggingIdentifier&amp;): bool
++ friend operator!=(const LoggingIdentifier&amp;, const LoggingIdentifier&amp;): bool
++ kMaxLength: std::size_t
++ data_: std::array&lt;amp::string_view::value_type, kMaxLength&gt;
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>530</x>
+      <y>1170</y>
+      <w>100</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+</panel_attributes>
+    <additional_attributes>10.0;20.0;80.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1320</x>
+      <y>250</y>
+      <w>410</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt; interface &gt;&gt;
+IRecorderFactory
+--
++ CreateFromConfiguration: std::unique_ptr&lt;Recorder&gt;
++ CreateWithConsoleLoggingOnly(): std::unique_ptr&lt;Recorder&gt;
++ CreateStub(): std::unique_ptr&lt;Recorder&gt;
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1260</x>
+      <y>370</y>
+      <w>80</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+uses</panel_attributes>
+    <additional_attributes>60.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+</diagram>

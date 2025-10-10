@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>20</x>
+      <y>180</y>
+      <w>490</w>
+      <h>300</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Singleton&gt;&gt;
+
+bmw::platform::logger
+--
+- config_: Configuration
+- nvconfig_: NvConfig
+- shared_memory_writer_: SharedMemoryWriter
+- log_entry: log_entry
+--
++ instance(const amp::optional&lt;const bmw::mw::log::detail::Configuration&gt;&amp;,
+const amp::optional&lt;const bmw::mw::log::NvConfig&gt;&amp;,
+amp::optional&lt;bmw::mw::log::detail::SharedMemoryWriter&gt;)
++ RegisterType(): amp::optional&lt;bmw::mw::log::detail::TypeIdentifier&gt;
++ get_type_level(): LogLevel
++ get_type_threshold: LogLevel
++ get_config(): const Configuration&amp;
++ get_non_verbose_config(): const NvConfig&amp;
++ GetSharedMemoryWriter(): SharedMemoryWriter&amp;
++ InjectTestInstance(logger* const logger_ptr): static void
+
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>610</x>
+      <y>250</y>
+      <w>490</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>log_entry
+--
+- default_enabled_: bool
+- shared_memory_id_: std::atomic&lt;bmw::mw::log::detail::TypeIdentifier&gt;
+--
++ instance(): static log_entry&amp;
++ RegisterTypeGetId(): amp::optional&lt;bmw::mw::log::detail::TypeIdentifier&gt;
++ TrySerializeIntoSharedMemory(T): void
++ TryWriteIntoSharedMemoryrd(const T&amp;): void
++ log_at_time(timestamp_t, const T&amp;): void
++ log_serialized(const char*, const msgsize_t): void
++ enabled(): bool
++ enabled_at(LogLevel): bool
+
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>270</y>
+      <w>130</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+&lt;&lt; friend &gt;&gt;</panel_attributes>
+    <additional_attributes>110.0;17.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>60</y>
+      <w>120</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>Configuration
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>90</x>
+      <y>110</y>
+      <w>60</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+bg=black
+owns</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>190</x>
+      <y>20</y>
+      <w>440</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>NvConfig
+--
+- json_path_: const std::string
+- typemap_: bool
+--
++ NvConfig(const std::string&amp;)
++ parseFromJson(): ReadResult
++ getDltMsgDesc(const std::string&amp;): const config::NvMsgDescriptor*
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>130</y>
+      <w>60</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+bg=black
+owns</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>610</x>
+      <y>180</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>SharedMemoryWriter
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>190</y>
+      <w>130</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+bg=black
+owns</panel_attributes>
+    <additional_attributes>10.0;20.0;110.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>580</x>
+      <y>560</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>TRACE
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>750</x>
+      <y>560</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>TRACE_*
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>810</x>
+      <y>450</y>
+      <w>30</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;17.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>640</x>
+      <y>450</y>
+      <w>30</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;17.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>920</x>
+      <y>560</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>TRACE_LEVEL
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>990</x>
+      <y>450</y>
+      <w>30</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;17.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>410</x>
+      <y>560</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>LOG_ENTRY
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>480</x>
+      <y>450</y>
+      <w>160</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>140.0;17.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>190</x>
+      <y>530</y>
+      <w>910</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>Free public functions
+
+
+bg=blue
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>500</x>
+      <y>330</y>
+      <w>130</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>110.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>690</x>
+      <y>20</y>
+      <w>220</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>NvMsgDescriptor
+--
++ id_msg_descriptor_: uint32_t
++ appid_: LoggingIdentifier
++ ctxid_: LoggingIdentifier
++ logLevel_: uint8_t
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>620</x>
+      <y>40</y>
+      <w>90</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+&lt;&lt; uses &gt;&gt;</panel_attributes>
+    <additional_attributes>10.0;20.0;70.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>950</x>
+      <y>20</y>
+      <w>150</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>LoggingIdentifier
+--
+
+bg=white
+fontsize=14</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>900</x>
+      <y>20</y>
+      <w>70</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+bg=black
+</panel_attributes>
+    <additional_attributes>10.0;20.0;50.0;20.0</additional_attributes>
+  </element>
+</diagram>
