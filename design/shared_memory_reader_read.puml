@@ -1,0 +1,93 @@
+@startuml SharedMemoryReader_Read
+title SharedMemoryReader::Read
+
+start
+if (Finished reading after detach?) then (no)
+  :ReadRemainingDataIfWriterIsDetached;
+else (yes)
+  if (Is Data acquired?) then (yes)
+    :ReadAquiredData;
+  else (no)
+    :ReadAquiredData;
+  endif
+endif
+stop
+
+@enduml
+
+@startuml ReadAcquiredData
+title ReadAcquiredData
+
+start
+:CreateReaderForBuffer;
+:ReadLinearBuffer;
+:Set flag to indicate if buffer1 is expected to read next is already acquired or not based on acquired data;
+:Reset acquired data;
+stop
+
+@enduml
+
+@startuml CreateReaderForBuffer
+title CreateReaderForBuffer
+
+start
+if (Check flag that indicates what buffer1 has acquired) then (Acquired Buffer1)
+  :control_block=control_block_2;
+else (Not Acquired Buffer1)
+  :control_block=control_block_1;
+endif
+:Choose the relevant buffer;
+:length = written index to respective control block;
+:Number of acquired bytes = length;
+:CreateLinearReaderFromDataAndLength;
+stop
+
+@enduml
+
+@startuml ReadLinearBuffer
+title ReadLinearBuffer
+
+start
+if (Read successful?) then (no)
+  stop
+else (yes)
+  if (Length of Read result < buffer entry header size) then (yes)
+    stop
+  else (no)
+    :Initialize header span from Read result;
+    :Copy header span to buffer entry header;
+    :Initialize payload span from Read result;
+    if (Header type identifier == register type token) then (yes)
+      if (Payload span length < type registration ID) then (no)
+        :Copy memory from payload span to type registration ID;
+        :Type ID size = size of type registration ID;
+        :Type registration data = subspan of type ID size from payload span;
+        :Trigger type registration callback with created type registration;
+      else (yes)
+        :Init shared memory record with existing header and payload span;
+        :Trigger new message callback with shared memory record;
+      endif
+    else (no)
+      :Init shared memory record with existing header and payload span;
+      :Trigger new message callback with shared memory record;
+    endif
+  endif
+endif
+stop
+
+@enduml
+
+@startuml ReadRemainingDataIfWriterIsDetached
+title ReadRemainingDataIfWriterIsDetached
+
+start
+if (Is writer detached?) then (no)
+  stop
+else (yes)
+  :Reader = CreateReaderForBuffer;
+  :ReadLinearBuffer;
+  :Finished reading after detach = true;
+endif
+stop
+
+@enduml

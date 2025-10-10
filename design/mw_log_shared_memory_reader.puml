@@ -1,0 +1,122 @@
+@startuml mw_log_shared_memory_reader
+
+interface ReaderFactory {
+  + Create(const std::int32_t, const pid_t): amp::optional<SharedMemoryReader>
+  + Default(): std::unique_ptr<ReaderFactory>
+}
+
+class ReaderFactoryImpl {
+  - mman_: amp::pmr::unique_ptr<bmw::os::Mman>
+  - stat_: amp::pmr::unique_ptr<bmw::os::Stat>
+  --
+  + Create(const std::int32_t, const pid_t): amp::optional<SharedMemoryReader>
+}
+
+class SharedMemoryReader {
+  - shared_data_: SharedData&
+  - unmap_callback_: UnmapCallback
+  - linear_reader_: std::optional<LinearReader>
+  - acquired_data_: std::optional<ReadAcquireResult>
+  - number_of_acquired_bytes_: Length
+  - finished_reading_after_detach_: bool
+  - buffer_expected_to_read_next_: std::uint32_t
+  - is_writer_detached_: bool
+  - alternating_read_only_reader_: AlternatingReadOnlyReader
+  - DetachWriter(): void
+  - IsWriterDetached(): bool
+  --
+  + SharedMemoryReader(const SharedData&, const amp::span<Byte>, const amp::span<Byte>, UnmapCallback)
+  + Read(const TypeRegistrationCallback&, const NewRecordCallback&): std::optional<Length>
+  + PeekNumberOfBytesAcquiredInBuffer(const std::uint32_t): std::optional<Length>
+  + ReadDetached(const TypeRegistrationCallback&, const NewRecordCallback&): std::optional<Length>
+  + GetNumberOfDropsWithBufferFull(): Length
+  + GetNumberOfDropsWithInvalidSize(): Length
+  + GetRingBufferSizeBytes(): Length
+  + GetNumberOfAcquiredBytes(): Length
+  + IsBlockReleasedByWriters(): bool
+  + NotifyAcquisitionSetReader(const ReadAcquireResult&): std::optional<Length>
+}
+
+class SharedData <<Shared Memory>> {
+}
+
+class LinearReader {
+  - data_: amp::span<Byte>
+  - read_index_: Length
+  --
+  + LinearReader(const amp::span<Byte>&)
+  + Read(): amp::optional<amp::span<Byte>>
+}
+
+class AlternatingReadOnlyReader {
+  - buffer_a_: amp::span<Byte>
+  - buffer_b_: amp::span<Byte>
+  - current_buffer_: std::uint32_t
+  --
+  + AlternatingReadOnlyReader(const amp::span<Byte>&, const amp::span<Byte>&)
+  + Read(): amp::optional<amp::span<Byte>>
+  + SwitchBuffer(): void
+}
+
+class DataRouter {
+  - subscriberDatabase_: SubscriberDatabase
+  - databaseCallback_: WriteSubscriberDatabaseCallback
+  --
+  + new_source_session(): SessionPtr
+  + new_subscriber_session(): SessionPtr
+}
+
+package "bmw::os" {
+  class Mman {
+    + mmap(): void*
+    + munmap(): int
+  }
+  
+  class Stat {
+    + fstat(): int
+    + get_size(): size_t
+  }
+}
+
+' Relationships
+ReaderFactory <|.. ReaderFactoryImpl
+ReaderFactoryImpl ..> SharedMemoryReader : "<<creates>>"
+ReaderFactoryImpl ..> Mman : "uses"
+ReaderFactoryImpl ..> Stat : "uses"
+
+SharedMemoryReader *-- SharedData
+SharedMemoryReader *-- LinearReader
+SharedMemoryReader *-- AlternatingReadOnlyReader
+
+SharedMemoryReader ..> DataRouter : "interacts with"
+
+note top of SharedMemoryReader
+  Reads log data from shared memory
+  buffers created by writers.
+  Supports both attached and detached
+  reading modes.
+end note
+
+note right of ReaderFactory
+  Factory pattern for creating
+  SharedMemoryReader instances
+  with proper OS abstractions
+end note
+
+note bottom of SharedData
+  Shared memory segment containing
+  ring buffers and metadata shared
+  between writer and reader processes
+end note
+
+note left of LinearReader
+  Reads data sequentially from
+  a single linear buffer
+end note
+
+note left of AlternatingReadOnlyReader
+  Reads from alternating buffers
+  to support wait-free operations
+end note
+
+@enduml

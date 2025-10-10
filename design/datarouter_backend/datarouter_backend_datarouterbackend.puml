@@ -1,0 +1,7 @@
+@startuml
+start
+:Create shared memory writer;
+:Create message client;
+:Run message client;
+stop
+@enduml

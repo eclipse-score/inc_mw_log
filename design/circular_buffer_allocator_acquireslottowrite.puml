@@ -1,0 +1,13 @@
+@startuml
+start
+:Increment loop counter;
+if (Loop counter > circular buffer size) then (yes)
+:Increment claimed slot;
+stop
+:Loop counter = 0;
+:Slot index = claimed slot % circular
+buffer capacity;
+if (Circular buffer at Slot index in use?) then (yes)
+:Mark Slot as in use;
+:Return Slot index;
+@enduml

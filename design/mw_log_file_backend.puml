@@ -1,0 +1,162 @@
+@startuml mw_log_file_backend
+
+package "mw::log::detail" {
+
+class SlotDrainer {
+  -TryFlushSlots(): amp::expected<FlushResult, Error>
+  -TryFlushSpans(): amp::expected<FlushResult, Error>
+  -MoreSlotsAvailableAndLoaded(): bool
+  -MoreSpansAvailableAndLoaded(): bool
+  -allocator_: std::unique_ptr<CircularAllocator<LogRecord>>&
+  -message_builder_: std::unique_ptr<IMessageBuilder>
+  -context_mutex_: std::mutex
+  -circular_buffer_: amp::circular_buffer<SlotHandle, kMaxCircularBufferSize>
+  -current_slot_: amp::optional<std::reference_wrapper<const SlotHandle>>
+  -non_blocking_writer_: NonBlockingWriter
+  -limit_slots_in_one_cycle_: const std::size_t
+  --
+  +SlotDrainer(std::unique_ptr<IMessageBuilder>, std::unique_ptr<CircularAllocator<LogRecord>>&, const std::int32_t, const std::size_t, std::unique_ptr<bmw::os::Unistd>)
+  +PushBack(const SlotHandle&): void
+  +Flush(): void
+}
+
+interface Backend {
+  +ReserveSlot(): amp::optional<SlotHandle>
+  +GetLogRecord(const SlotHandle&): LogRecord&
+  +FlushSlot(const SlotHandle&): void
+}
+
+class FileOutputBackend {
+  -buffer_allocator_: std::unique_ptr<CircularAllocator<LogRecord>>
+  -slot_drainer_: SlotDrainer
+  --
+  +FileOutputBackend(std::unique_ptr<IMessageBuilder>, const std::int32_t, std::unique_ptr<CircularAllocator<LogRecord>>, std::unique_ptr<bmw::os::Fcntl>)
+  +ReserveSlot(): amp::optional<SlotHandle>
+  +FlushSlot(const SlotHandle&): void
+  +GetLogRecord(const SlotHandle&): LogRecord&
+}
+
+class "Slot<T>" as Slot {
+  +data: T
+  +in_use: std::atomic<bool>
+}
+
+class NonBlockingWriter {
+  -InternalFlush(const uint64_t): amp::expected<ssize_t, bmw::os::Error>
+  -unistd_: std::unique_ptr<bmw::os::Unistd>
+  -file_handle_: std::int32_t
+  -number_of_flushed_bytes_: uint64_t
+  -buffer_: amp::span<const std::uint8_t>
+  -buffer_flushed_: Result
+  -max_chunk_size_: std::size_t
+  --
+  +NonBlockingWriter(const std::int32_t, std::size_t, std::unique_ptr<bmw::os::Unistd>)
+  +FlushIntoFile(): amp::expected<Result, Error>
+  +SetSpan(const amp::span<const std::uint8_t>&): void
+  +GetMaxChunkSize(): std::size_t
+}
+
+class "amp::circular_buffer<SlotHandle, MaxSize>" as CircularBuffer {
+}
+
+interface IMessageBuilder {
+  +SetNextMessage(LogRecord&): void
+  +GetNextSpan(): amp::optional<amp::span<const std::uint8_t>>
+}
+
+class DltMessageBuilder {
+  +SetNextMessage(LogRecord&): void
+  +GetNextSpan(): amp::optional<amp::span<const std::uint8_t>>
+  --
+  +DltMessageBuilder(ecu_id)
+}
+
+class TextMessageBuilder {
+  +SetNextMessage(log_record: LogRecord&): void
+  +GetNextSpan(): amp::optional<amp::span<const std::uint8_t>>
+  --
+  +TextMessageBuilder(app_id, ecu_id)
+}
+
+class LogRecord {
+  -logEntry_: LogEntry
+  -verbosePayload_: VerbosePayload
+  --
+  +LogRecord(const std::size_t)
+  +getLogEntry(): LogEntry&
+  +getLogEntry(): const LogEntry&
+  +getVerbosePayload(): VerbosePayload&
+  +getVerbosePayload(): const VerbosePayload&
+}
+
+class BackendLogMock {
+  +ReserveSlot(): amp::optional<SlotHandle>
+  +GetLogRecord(const SlotHandle&): LogRecord&
+  +FlushSlot(const SlotHandle&): void
+}
+
+}
+
+package "mw::log" {
+class Recorder {
+  +StartRecord(ctx: std::string_view, ll: LogLevel): amp::optional<SlotHandle>
+  +StopRecord(slot: SlotHandle&): void
+  +Log(T data): void
+  --
+  -backend: unique_ptr<Backend>
+}
+}
+
+package "OSAL" {
+class Unistd {
+}
+class Fcntl {
+}
+}
+
+' Relationships
+Backend <|.. FileOutputBackend
+Backend <|.. BackendLogMock
+IMessageBuilder <|.. DltMessageBuilder
+IMessageBuilder <|.. TextMessageBuilder
+
+FileOutputBackend *-- SlotDrainer
+SlotDrainer *-- NonBlockingWriter
+SlotDrainer *-- CircularBuffer
+SlotDrainer *-- IMessageBuilder
+SlotDrainer ..> Slot : "uses"
+
+NonBlockingWriter ..> Unistd : "write/close"
+FileOutputBackend ..> Fcntl : "SetNonBlocking"
+
+Recorder *-- Backend
+LogRecord *-- VerbosePayload
+LogRecord *-- LogEntry
+
+note top of SlotDrainer
+  Responsibilities:
+  - Drains slots - empties circular_buffer
+  when subsequent data has been flushed
+  - Returns status if data was flushed or stalled
+end note
+
+note top of FileOutputBackend
+  Test strategy:
+  - Inject SlotDrainer with mocked OSAL
+  - Use MessageBuilderMock
+end note
+
+note top of NonBlockingWriter
+  Test strategy:
+  - Inject OSAL mock by constructor argument
+  with default value
+end note
+
+note right of CircularBuffer
+  By design we exclude possibility of dropped
+  messages in CircularBuffer because the
+  size of SlotAllocator is smaller or equal
+  than CircularBuffer size.
+end note
+
+@enduml

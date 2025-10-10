@@ -1,0 +1,247 @@
+@startuml verbose_logging_static
+
+enum LogLevel {
+  kOff = 0x00
+  kFatal = 0x01
+  kError = 0x02
+  kWarn = 0x03
+  kInfo = 0x04
+  kDebug = 0x05
+  kVerbose = 0x06
+}
+
+class Logger {
+  -context_ : LoggingIdentifier
+  --
+  +Logger(ctxId)
+  +LogFatal() : LogStream
+  +LogError() : LogStream
+  +LogWarn() : LogStream
+  +LogInfo() : LogStream
+  +LogDebug() : LogStream
+  +LogVerbose() : LogStream
+  +WithLevel(level) : LogStream
+  +IsLogEnabled(level) : bool
+  +IsEnabled(level) : bool
+  +GetContext() : string_view
+}
+
+class FreeFunctions {
+  +LogFatal() : LogStream
+  +LogError() : LogStream
+  +LogWarn() : LogStream
+  +LogInfo() : LogStream
+  +LogDebug() : LogStream
+  +LogVerbose() : LogStream
+  +LogFatal(context) : LogStream
+  +LogError(context) : LogStream
+  +LogWarn(context) : LogStream
+  +LogInfo(context) : LogStream
+  +LogDebug(context) : LogStream
+  +LogVerbose(context) : LogStream
+  +GetDefaultLogRecorder() : Recorder
+  +SetLogRecorder(recorder) : void
+}
+
+class LogStreamFactory {
+  +GetStream(LogLevel, ctxId) : LogStream {static}
+}
+
+class LogStream {
+  -recorder_ : Recorder
+  -slot_handle_ : optional
+  -context_id_ : LoggingIdentifier
+  -log_level_ : LogLevel
+  --
+  +LogStream(recorder, level, context)
+  +LogStream(other)
+  +Flush() : void
+}
+
+class Runtime {
+  -logger_container_instance_ : LoggerContainer
+  -recorder_instance_ : Recorder
+  -default_recorder_ : unique_ptr
+  --
+  +GetRecorder() : Recorder {static}
+  +SetRecorder(recorder) : void {static}
+  +GetLoggerContainer() : LoggerContainer {static}
+}
+
+interface Recorder {
+  +StartRecord(context_id, LogLevel) : optional
+  +StopRecord(handle) : void
+  +Log(handle, value1) : void
+  +Log(handle, value2) : void
+}
+
+class DataRouterRecorder
+class TextRecorder 
+class FileRecorder
+class EmptyRecorder
+
+class Configuration
+
+interface Backend {
+  +ReserveSlot() : optional
+  +FlushSlot(handle) : void
+  +GetLogRecord(handle) : LogRecord
+}
+
+class DataRouterBackend {
+  +ReserveSlot() : optional
+  +FlushSlot(handle) : void
+  +GetLogRecord(handle) : LogRecord
+  --
+  -buffer_ : CircularAllocator
+  -message_client_ : unique_ptr
+}
+
+class SlotHandle {
+  -recorder_to_slot_ : array
+  -recorder_slot_available_ : bitset
+  -selected_recorder_ : RecorderIdentifier
+  --
+  +SlotHandle()
+  +SlotHandle(index)
+  +GetSlotOfSelectedRecorder() : SlotIndex
+  +GetSlot(identifier) : SlotIndex
+  +SetSlot(index, identifier) : void
+  +GetSelectedRecorder() : RecorderIdentifier
+  +SetSelectedRecorder(identifier) : void
+  +IsRecorderActive(identifier) : bool
+  +operator_equal(lhs, rhs) : bool
+  +operator_not_equal(lhs, rhs) : bool
+  +kMaxRecorders : size_t {static}
+}
+
+class LogRecord {
+  -logEntry_ : LogEntry
+  -verbosePayload_ : VerbosePayload
+  --
+  +getLogEntry() : LogEntry
+  +getLogEntry() : LogEntry
+  +getVerbosePayload() : VerbosePayload
+  +getVerbosePayload() : VerbosePayload
+}
+
+class LogEntry {
+  +appId : dltid_t
+  +ctxId : dltid_t 
+  +sessionId : dltid_t
+  +logLevel : uint8_t
+  +num_of_args : int8_t
+  +payload : string
+}
+
+class VerbosePayload {
+  -buffer_ : reference_wrapper
+  --
+  +VerbosePayload(size, str)
+  +Put(bytes, size) : void
+  +Put(callback, size) : size_t
+  +GetSpan() : span
+  +Reset() : void
+  +WillOverflow(size) : bool
+  +RemainingCapacity() : size_t
+  +SetBuffer(buffer) : void
+}
+
+class TextFormat
+
+class StatisticsReporter
+
+class LoggerContainer {
+  -stack_ : WaitFreeStack
+  -default_logger_ : Logger
+  --
+  +GetLogger(context) : Logger
+  +GetCapacity() : size_t
+  +GetDefaultLogger() : Logger
+}
+
+class WaitFreeStack {
+  -elements_ : vector
+  -elements_written_ : vector
+  -write_index_ : AtomicIndex
+  -capacity_full_ : AtomicBool
+  --
+  +WaitFreeStack(size)
+  +TryPush(element) : optional
+  +Find(predicate) : optional
+}
+
+class LoggingIdentifier
+
+class RecorderIdentifier {
+  +value : size_t
+}
+
+class TRACE_MACRO
+
+' Relationships
+Logger ..> LogStreamFactory : uses
+FreeFunctions ..> LogStreamFactory : uses
+LogStreamFactory ..> LogStream : create
+LogStream *-- Recorder : records data
+LogStream *-- SlotHandle : owns
+
+Recorder <|-- DataRouterRecorder
+Recorder <|-- TextRecorder
+Recorder <|-- FileRecorder
+Recorder <|-- EmptyRecorder
+
+Backend <|.. DataRouterBackend
+DataRouterRecorder *-- DataRouterBackend : reserve and flush slots
+DataRouterRecorder *-- Configuration : get application specific config
+DataRouterRecorder *-- StatisticsReporter
+
+Runtime *-- LoggerContainer : owns
+LoggerContainer *-- WaitFreeStack : owns
+LoggerContainer *-- Logger : owns
+Logger *-- LoggingIdentifier : owns
+
+DataRouterBackend ..> LogRecord : creates and fills
+LogRecord *-- LogEntry : creates and fills
+LogRecord *-- VerbosePayload : creates and fills
+
+TextRecorder ..> TextFormat : Log
+
+Runtime ..> Recorder : get current recorder
+
+TRACE_MACRO ..> Runtime : on sync
+
+note top of DataRouterBackend
+  For the time being,
+  DataRouterRecorder will not only be a facade
+  but contain DLT specific logic.
+  In this case calling
+  StartRecord() and StopRecord()
+end note
+
+note bottom of LogEntry
+  In future this will be removed
+  and we will stream into MwsrWriter
+end note
+
+note bottom of TRACE_MACRO
+  In future this will be removed
+  and we will stream into MwsrWriter
+end note
+
+note bottom of VerbosePayload
+  In future this will be removed
+  and we will stream into MwsrWriter
+end note
+
+note right of Recorder
+  A user is allowed to use the Recorder interface
+  for its abstraction. But its not recommended due
+  to its more complicated usage.
+end note
+
+note top
+  This diagram only illustrates the use-case of verbose logging.
+end note
+
+@enduml

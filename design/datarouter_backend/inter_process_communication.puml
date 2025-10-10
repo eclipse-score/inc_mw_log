@@ -1,0 +1,13 @@
+@startuml
+participant "Logging Client" as Client
+participant "Datarouter Process" as Datarouter
+participant "DatarouterBackend" as Backend
+
+Client -> Backend : Write log messages via shared memory
+Backend -> Datarouter : Forward messages
+
+note over Client : Creates and writes to shared memory buffer
+note over Backend : Read-only access to client buffers
+note over Backend : Creates a Sender for each client
+note over Backend : One receiver for all clients
+@enduml

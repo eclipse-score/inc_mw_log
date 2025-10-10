@@ -1,0 +1,42 @@
+@startuml verbose_logging_ara_log_interaction
+
+package "ara::log API" {
+  class "Free Functions" as AraLogFunctions {
+    + ara::log::LogError(): ara::log::LogStream
+    + ara::log::LogWarn(): ara::log::LogStream
+    + ara::log::LogInfo(): ara::log::LogStream
+    + ara::log::LogDebug(): ara::log::LogStream
+  }
+}
+
+package "bmw::mw Log Implementation" {
+  class "Free Functions" as BmwMwLogFunctions {
+    + bmw::mw::LogError(): bmw::mw::LogStream
+    + bmw::mw::LogWarn(): bmw::mw::LogStream
+    + bmw::mw::LogInfo(): bmw::mw::LogStream
+    + bmw::mw::LogDebug(): bmw::mw::LogStream
+  }
+}
+
+AraLogFunctions --> BmwMwLogFunctions : facade
+
+note top of AraLogFunctions
+  AUTOSAR Adaptive Platform
+  Logging API - standardized
+  interface for automotive
+  applications
+end note
+
+note bottom of BmwMwLogFunctions
+  BMW Middleware logging
+  implementation providing
+  the actual logging functionality
+end note
+
+note on link
+  ara::log functions act as
+  a facade that delegates to
+  bmw::mw logging implementation
+end note
+
+@enduml

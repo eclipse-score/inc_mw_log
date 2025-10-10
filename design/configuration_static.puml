@@ -1,0 +1,242 @@
+@startuml configuration_static
+
+package "bmw::json" {
+  class JsonParser {
+    +FromFile(path) : Result
+  }
+}
+
+package "bmw::os" {
+  class Fcntl
+  class Mman  
+  class Unistd {
+    +access()
+  }
+  class Stat
+  class Stdlib {
+    +getenv()
+  }
+  class Pthread
+  class Signal
+  
+  package "utils" {
+    class Path {
+      +get_exec_path() : Result
+      +get_parent_dir() : string
+    }
+  }
+}
+
+interface Recorder {
+  +StartRecord(context_id, LogLevel) : optional
+  +StopRecord(SlotHandle) : void
+  +Log(SlotHandle, uint8_t) : void
+  +Log(SlotHandle, int8_t) : void
+}
+
+class TextRecorder
+class DataRouterRecorder {
+  -configuration : Configuration
+}
+class FileRecorder
+class EmptyRecorder
+class CompositeRecorder {
+  -config_ : Configuration
+}
+
+class RecorderComposite {
+  +RecorderComposite(recorders)
+  -recorders_ : vector
+}
+
+class Configuration {
+  -ecu_id_ : LoggingIdentifier
+  -app_id_ : LoggingIdentifier
+  -app_description_ : string
+  -log_mode_ : unordered_set
+  -log_file_path_ : string
+  -default_log_level_ : LogLevel
+  -default_console_log_level_ : LogLevel
+  -context_log_level_ : ContextLogLevelMap
+  -stack_buffer_size_ : size_t
+  -ring_buffer_size_ : size_t
+  -ring_buffer_overwrite_on_full_ : bool
+  -number_of_slots_ : size_t
+  -slot_size_bytes_ : size_t
+  -data_router_uid_ : size_t
+  -dynamic_datarouter_identifiers_ : bool
+  --
+  +Configuration()
+  +GetEcuId() : string_view
+  +SetEcuId(value) : void
+  +GetAppId() : string_view
+  +SetAppId(value) : void
+  +GetAppDescription() : string_view
+  +SetAppDescription(value) : void
+  +GetLogMode() : unordered_set
+  +SetLogMode(value) : void
+  +GetLogFilePath() : string_view
+  +SetLogFilePath(value) : void
+  +GetDefaultLogLevel() : LogLevel
+  +SetDefaultLogLevel(value) : void
+  +GetDefaultConsoleLogLevel() : LogLevel
+  +SetDefaultConsoleLogLevel(value) : void
+  +GetContextLogLevel() : ContextLogLevelMap
+  +SetContextLogLevel(value) : void
+  +GetStackBufferSize() : size_t
+  +SetStackBufferSize(value) : void
+  +GetRingBufferSize() : size_t
+  +SetRingBufferSize(value) : void
+  +GetRingBufferOverwriteOnFull() : bool
+  +SetRingBufferOverwriteOnFull(value) : void
+  +GetNumberOfSlots() : size_t
+  +SetNumberOfSlots(value) : void
+  +GetSlotSizeInBytes() : size_t
+  +SetSlotSizeInBytes(value) : void
+  +SetDataRouterUid(value) : void
+  +GetDataRouterUid() : size_t
+  +GetDynamicDatarouterIdentifiers() : bool
+  +SetDynamicDatarouterIdentifiers(value) : void
+  +IsLogLevelEnabled(log_level, context, check_for_console) : bool
+}
+
+interface ITargetConfigReader {
+  +ReadConfig() : Result
+}
+
+class TargetConfigReader {
+  +TargetConfigReader(discoverer)
+  +ReadConfig() : Result
+  -discoverer_ : unique_ptr
+}
+
+class TargetConfigReaderMock
+
+interface IConfigurationFileDiscoverer {
+  +FindConfigurationFiles() : vector
+}
+
+class ConfigurationFileDiscoverer {
+  -path_ : unique_ptr
+  -stdlib_ : unique_ptr
+  -unistd_ : unique_ptr
+  --
+  +ConfigurationFileDiscoverer(path, stdlib, unistd)
+  +FindConfigurationFiles() : vector
+}
+
+class ConfigurationFileDiscovererMock
+
+class RecorderFactory {
+  -GetRemoteRecorder(config) : unique_ptr
+  -GetFileRecorder(config, fcntl) : unique_ptr
+  -GetConsoleRecorder(config) : unique_ptr
+  --
+  +CreateFromConfiguration() : unique_ptr
+  +CreateFromConfiguration(reader) : unique_ptr
+  +CreateWithConsoleLoggingOnly() : unique_ptr
+  +CreateStub() : unique_ptr
+  +CreateRecorderFromLogMode(mode, config, fcntl) : unique_ptr
+}
+
+interface IRecorderFactory {
+  +CreateFromConfiguration() : unique_ptr
+  +CreateWithConsoleLoggingOnly() : unique_ptr
+  +CreateStub() : unique_ptr
+}
+
+class Runtime
+
+class LoggingIdentifier {
+  +LoggingIdentifier(value)
+  +GetStringView() : string_view
+  +operator_equal(lhs, rhs) : bool
+  +operator_not_equal(lhs, rhs) : bool
+  +kMaxLength : size_t
+  +data_ : array
+}
+
+' Inheritance relationships
+Recorder <|-- TextRecorder
+Recorder <|-- DataRouterRecorder
+Recorder <|-- FileRecorder
+Recorder <|-- EmptyRecorder
+Recorder <|-- CompositeRecorder
+Recorder <|.. RecorderComposite
+
+ITargetConfigReader <|.. TargetConfigReader
+ITargetConfigReader <|.. TargetConfigReaderMock
+
+IConfigurationFileDiscoverer <|-- ConfigurationFileDiscoverer
+IConfigurationFileDiscoverer <|-- ConfigurationFileDiscovererMock
+
+IRecorderFactory <|.. RecorderFactory
+
+' Composition and aggregation relationships
+DataRouterRecorder *-- Configuration : owns
+CompositeRecorder *-- Configuration : owns
+RecorderComposite *-- Recorder : owns
+TargetConfigReader *-- IConfigurationFileDiscoverer : owns
+ConfigurationFileDiscoverer *-- Path : uses
+ConfigurationFileDiscoverer *-- Stdlib : uses
+ConfigurationFileDiscoverer *-- Unistd : uses
+Configuration *-- LoggingIdentifier : owns
+
+' Usage relationships
+RecorderFactory ..> Configuration : uses
+RecorderFactory ..> ITargetConfigReader : uses
+RecorderFactory ..> Recorder : creates
+TargetConfigReader ..> Configuration : creates
+TargetConfigReader ..> JsonParser : uses
+Runtime *-- IRecorderFactory : uses
+
+note top of RecorderComposite
+  Forwards the logs to all recorders
+  in the list passed in the constructor.
+end note
+
+note right of RecorderFactory
+  CreateForTarget(): Loads the configuration 
+  and instantiates the requested recorder types.
+  
+  CreateForUnitTests(): Prepares a recorder
+  that puts logs in standard output stream
+  for unit testing.
+  
+  CreateStub(): Returns Empty recorder that 
+  discards all the logs.
+end note
+
+note right of TargetConfigReader
+  Reads config from
+  /opt/<app>/etc/logging.json
+  and /ecu/logging.json and creates the
+  Configuration object.
+end note
+
+note bottom of TargetConfigReaderMock
+  Used for unit testing the RecorderFactory.
+end note
+
+note right of ConfigurationFileDiscoverer
+  Finds the file paths to the global, environmental and 
+  application configuration files and returns all that exists.
+  
+  Global configuration:
+  1. /etc/ecu_logging_config.json if it exists.
+  
+  Environmental configuration:
+  1. path under the MW_LOG_CONFIG_FILE environmental
+  variable if it defined
+  
+  Application configuration:
+  1. <cwd>/etc/logging.json
+  2. <cwd>/logging.json
+  3. <binary path>/../etc/logging.json
+end note
+
+note bottom of IConfigurationFileDiscoverer
+  Dependency injection for unit testing.
+end note
+
+@enduml

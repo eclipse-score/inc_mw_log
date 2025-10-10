@@ -1,0 +1,64 @@
+@startuml frontend_dependency_graph
+
+package "mw::log frontend" as frontend {
+  class Logger {
+    +Includes classes and free functions
+  }
+  class LogStreamFactory
+  class LogStream
+  class Runtime
+  class LoggerContainer
+  class LogTypes
+  interface IRecorder
+  interface IRecorderFactory
+}
+
+package "mw::log implementation details" as details {
+  class Configuration
+  class TargetConfigReader
+  class DataRouterRecorder
+  class ConsoleRecorder
+  class FileRecorder
+  class CompositeRecorder
+  class RecorderFactory
+}
+
+Logger <-- LogStreamFactory
+Logger <-- LoggerContainer
+LogStreamFactory <-- LogStream
+LogStream <-- LogTypes
+Runtime <-- LogStream
+Runtime <-- LoggerContainer
+Runtime <-- IRecorder
+Runtime <-- IRecorderFactory
+
+IRecorder <|.. DataRouterRecorder
+IRecorder <|.. ConsoleRecorder
+IRecorder <|.. FileRecorder
+IRecorder <|.. CompositeRecorder
+
+IRecorderFactory <|.. RecorderFactory
+
+RecorderFactory <-- DataRouterRecorder
+RecorderFactory <-- ConsoleRecorder
+RecorderFactory <-- FileRecorder
+RecorderFactory <-- CompositeRecorder
+
+Configuration <-- RecorderFactory
+Configuration <-- TargetConfigReader
+TargetConfigReader <-- RecorderFactory
+
+Runtime ..> RecorderFactory : "decoupled dependency"
+
+note top of frontend
+  Frontend contains the public user API,
+  and the necessary classes to interface
+  with the backend and implementation details.
+end note
+
+note bottom of details
+  Instable components shall
+  depend on stable classes.
+end note
+
+@enduml

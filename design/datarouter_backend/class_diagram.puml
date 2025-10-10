@@ -1,0 +1,196 @@
+@startuml datarouter_backend_class_diagram
+
+package "DataRouter Backend" {
+
+class DataRouterBackend {
+  - buffer_: CircularAllocator
+  - message_client_: DatarouterMessageClient
+  --
+  + DataRouterBackend(const std::size_t, const LogRecord&, DatarouterMessageClientFactory&, const Configuration&, WriterFactory)
+  + ReserveSlot(): amp::optional<SlotHandle>
+  + FlushSlot(const SlotHandle&): void
+  + GetLogRecord(const SlotHandle&): LogRecord&
+}
+
+interface Backend {
+  + ReserveSlot(): amp::optional<SlotHandle>
+  + FlushSlot(const SlotHandle&): void
+  + GetLogRecord(const SlotHandle&): LogRecord&
+}
+
+interface DatarouterMessageClient {
+  + Run(): void
+  + Shutdown(): void
+}
+
+class DatarouterMessageClientImpl {
+  - run_started_: bool
+  - msg_client_ids_: MsgClientIdentifiers
+  - use_dynamic_datarouter_ids_: bool
+  - first_message_received_: std::atomic_bool
+  - shared_memory_writer_: SharedMemoryWriter&
+  - writer_file_name_: std::string
+  - message_passing_factory_: std::unique_ptr<MessagePassingFactory>
+  - stop_source_: amp::stop_source
+  - thread_pool_: bmw::concurrency::ThreadPool
+  --
+  + DatarouterMessageClientImpl(const MsgClientIdentifiers&, MsgClientBackend, MsgClientUtils, const amp::stop_source)
+  + Run(): void
+  + Shutdown(): void
+  + ConnectToDatarouter(): void
+  + SendConnectMessage(): void
+}
+
+interface DatarouterMessageClientFactory {
+  + CreateOnce(const std::string&, const std::string&): std::unique_ptr<DatarouterMessageClient>
+}
+
+class DatarouterMessageClientFactoryImpl {
+  - created_once_: bool
+  - config_: Configuration
+  - message_passing_factory_: MessagePassingFactory
+  --
+  + DatarouterMessageClientFactoryImpl(const Configuration&, std::unique_ptr<MessagePassingFactory>, std::unique_ptr<bmw::os::Unistd>, std::unique_ptr<bmw::os::Pthread>)
+  + CreateOnce(const std::string&, const std::string&): std::unique_ptr<DatarouterMessageClient>
+}
+
+class SharedMemoryWriter {
+  - shared_data_: SharedData&
+  - alternating_writer_: WaitFreeAlternatingWriter
+  - alternating_reader_: AlternatingReader
+  - type_identifier_: atomic<TypeIdentifier>
+  --
+  + SharedMemoryWriter(SharedData&, UnmapCallback)
+  + GetMaxPayloadSize(): Length
+  + AllocAndWrite(const TimePoint, const TypeIdentifier, const Length, WriteCallback): void
+  + TryRegisterType(info: Typeinfo): optional<TypeIdentifier>
+  + DetachWriter(): void
+}
+
+class "<<Shared Memory>>\nSharedData" as SharedData {
+  + control_block: AlternatingControlBlock
+  + linear_buffer_1_offset: Length
+  + linear_buffer_2_offset: Length
+  + number_of_drops_buffer_full: std::atomic<Length>
+  + number_of_drops_invalid_size: std::atomic<Length>
+  + writer_detached: std::atomic<bool>
+  + producer_pid: pid_t
+}
+
+class WriterFactory {
+  - osal_: OsalInstances
+  - mmap_result_: amp::expected<void*, bmw::os::Error>
+  - unmap_callback_: UnmapCallback
+  --
+  + WriterFactory(OsalInstances osal)
+  + Create(const std::size_t ring_size, const bool dynamic_mode, const std::string_view app_id): amp::optional<SharedMemoryWriter>
+  + GetIdentifier(): std::string
+  + GetFileName(): std::string
+}
+
+class WaitFreeAlternatingWriter {
+  + Acquire(const Length length): amp::optional<AlternatingAcquiredData>
+  + Release(const AlternatingAcquiredData&): void
+}
+
+class AlternatingReader {
+  + Read(): amp::optional<amp::span<Byte>>
+  + Switch(): void
+}
+
+class AlternatingControlBlock {
+  + control_block_even: LinearControlBlock
+  + control_block_odd: LinearControlBlock
+  + switch_count_points_active_for_writing: std::atomic<std::uint32_t>
+}
+
+class LinearControlBlock {
+  + data: amp::span<Byte>
+  + acquired_index: std::atomic<Length>
+  + written_index: std::atomic<Length>
+  + number_of_writers: std::atomic<Length>
+}
+
+class MsgClientIdentifiers {
+  - receiver_id_: std::string
+  - this_process_id_: pid_t
+  - app_id_: LoggingIdentifier
+  - datarouter_uid_: uid_t
+  - uid_: uid_t
+  --
+  + MsgClientIdentifiers(const std::string&, const pid_t, const LoggingIdentifier&, const uid_t, const uid_t)
+  + GetReceiverID(): std::string&
+  + GetThisProcID(): const pid_t&
+  + GetAppID(): const LoggingIdentifier&
+}
+
+class "CircularAllocator<T>" as CircularAllocator {
+  + Allocate(size): T*
+  + Deallocate(ptr): void
+}
+
+interface MessagePassingFactory {
+  + CreateReceiver(): amp::pmr::unique_ptr<IReceiver>
+  + CreateSender(): amp::pmr::unique_ptr<ISender>
+}
+
+class "<<Singleton>>\nbmw::platform::logger" as Logger {
+  - writer: SharedMemoryWriter
+}
+
+}
+
+package "OSAL" {
+  class OsalInstances {
+    + fcntl_osal: std::unique_ptr<bmw::os::Fcntl>
+    + unistd: std::unique_ptr<bmw::os::Unistd>
+    + mman: std::unique_ptr<bmw::os::Mman>
+    + stat_osal: std::unique_ptr<bmw::os::Stat>
+  }
+}
+
+package "Message Passing" {
+  interface ISender {
+  }
+  
+  interface IReceiver {
+  }
+}
+
+' Relationships
+Backend <|.. DataRouterBackend
+DatarouterMessageClient <|.. DatarouterMessageClientImpl
+DatarouterMessageClientFactory <|.. DatarouterMessageClientFactoryImpl
+
+DataRouterBackend *-- CircularAllocator
+DataRouterBackend *-- DatarouterMessageClient
+DatarouterMessageClientFactoryImpl ..> DatarouterMessageClientImpl : "creates"
+
+SharedMemoryWriter *-- SharedData
+SharedMemoryWriter *-- WaitFreeAlternatingWriter
+SharedMemoryWriter *-- AlternatingReader
+
+SharedData *-- AlternatingControlBlock
+AlternatingControlBlock *-- LinearControlBlock
+
+WriterFactory ..> SharedMemoryWriter : "creates"
+WriterFactory *-- OsalInstances
+
+DatarouterMessageClientImpl *-- MsgClientIdentifiers
+DatarouterMessageClientImpl *-- SharedMemoryWriter
+DatarouterMessageClientImpl *-- MessagePassingFactory
+
+MessagePassingFactory ..> ISender : "creates"
+MessagePassingFactory ..> IReceiver : "creates"
+
+Logger *-- SharedMemoryWriter
+
+note bottom
+  using Length = std::uint64_t;
+  
+  The DataRouter Backend provides a logging backend
+  that communicates with external DataRouter services
+  via message passing and shared memory.
+end note
+
+@enduml

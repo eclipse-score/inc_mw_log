@@ -1,0 +1,85 @@
+@startuml class_diagram
+
+class "<<POD>>\nLinearControlBlock" as LinearControlBlock {
+  + data: span<byte>
+  + acquired_index: atomic_int
+  + written_index: atomic_int
+  + number_of_writers: atomic_int
+}
+
+class WaitFreeLinearWriter {
+  + WaitFreeLinearWriter(control_block: LinearControlBlock&)
+  + Acquire(length): optional<AcquiredData>
+  + Release(AcquiredData): void
+}
+
+class LinearReader {
+  + LinearReader(span<Byte>& data)
+  + Read(): optional<span<Byte>>
+}
+
+class "<<POD>>\nAlternatingControlBlock" as AlternatingControlBlock {
+  + linear_control_block_1: LinearControlBlock
+  + linear_control_block_2: LinearControlBlock
+}
+
+class WaitFreeAlternatingWriter {
+  + WaitFreeAlternatingWriter(control_block: AlternatingControlBlock&)
+  + Acquire(length): optional<AcquiredData>
+  + Release(AcquiredData): void
+}
+
+class AlternatingReader {
+  + AlternatingReader(AlternatingControlBlock& data)
+  + Read(): optional<span<Byte>>
+  + Switch(): void
+}
+
+' Relationships
+WaitFreeLinearWriter --> LinearControlBlock : "uses"
+LinearReader --> LinearControlBlock : "uses"
+
+AlternatingControlBlock *-- LinearControlBlock : "composition"
+
+WaitFreeAlternatingWriter --> AlternatingControlBlock : "uses"
+AlternatingReader --> AlternatingControlBlock : "uses"
+
+note top of LinearControlBlock
+  Plain Old Data (POD) structure
+  containing shared memory control
+  information for linear buffer.
+end note
+
+note bottom of AlternatingControlBlock
+  POD structure containing two
+  linear control blocks for
+  alternating buffer strategy.
+end note
+
+note left of WaitFreeLinearWriter
+  Wait-free writer implementation
+  for single linear buffer.
+  Multiple writers can operate
+  concurrently without blocking.
+end note
+
+note right of LinearReader
+  Single-threaded reader for
+  linear buffer. Reads data
+  sequentially from buffer.
+end note
+
+note left of WaitFreeAlternatingWriter
+  Wait-free writer for alternating
+  buffers. Switches between two
+  linear buffers to avoid
+  reader-writer conflicts.
+end note
+
+note right of AlternatingReader
+  Reader for alternating buffers.
+  Can switch between buffers
+  when current buffer is full.
+end note
+
+@enduml

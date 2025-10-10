@@ -1,0 +1,69 @@
+@startuml wait_free_linear_buffer
+
+participant "Producer Thread 1\n(WaitFreeLinearWriter class)" as Producer1
+participant "Producer Thread 2\n(WaitFreeLinearWriter class)" as Producer2
+participant "LinearControlBlock" as ControlBlock
+
+note over ControlBlock
+  **Initial State:**
+  acquired_index == 0, written_index == 0
+end note
+
+Producer1 -> ControlBlock : Acquire(64 bytes)
+note right
+  length_index = acquired_index.fetch_add(8 + 64)
+  acquired_index == 72
+  length_index == 0
+end note
+
+Producer1 -> Producer1 : WriteDataProducer1(acquired_data)
+note right : Writing on range [8:72)
+
+Producer2 -> ControlBlock : Acquire(16 bytes)
+note right
+  acquired_index == 96
+  length_index == 72
+end note
+
+note over Producer1, Producer2 : **happens before**
+
+Producer2 -> Producer2 : WriteDataProducer2(acquired_data)
+note right : Writing on range [80:96)
+
+note over Producer1, Producer2 : **Concurrent Writing**
+
+Producer2 -> ControlBlock : Release(16 bytes)
+note right
+  written_index.fetch_add(8 + 16)
+  written_index == 8 + 16
+end note
+
+note over Producer2, Producer1 : **happens before**
+
+Producer1 -> ControlBlock : Release(64 bytes)
+note right
+  written_index == 24 + (8 + 64)
+end note
+
+note over ControlBlock
+  **Final State:**
+  acquired_index == written_index == 96
+end note
+
+note left of Producer1
+  **Linear Buffer Content:**
+  
+  **[0:8)** - Length of Producer1
+  Data: 64
+  
+  **[8:72)** - Payload of Producer1
+  Data: WriteDataProducer1()
+  
+  **[72:80)** - Length of Payload 2
+  Data: 16
+  
+  **[80:96)** - Payload of Producer2
+  Data: WriteDataProducer2()
+end note
+
+@enduml

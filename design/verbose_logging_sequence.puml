@@ -1,0 +1,74 @@
+@startuml verbose_logging_sequence
+
+participant ":App" as App
+participant "FreeFunctions" as FreeFunctions
+participant "LogStreamFactory" as LogStreamFactory
+participant ":LogStream" as LogStream
+participant ":Runtime" as Runtime
+participant ":DataRouterRecorder" as DataRouterRecorder
+participant "DLTFormater" as DLTFormater
+participant ":DataRouterBackend" as DataRouterBackend
+participant "TRACE" as TRACE
+
+App -> FreeFunctions : bmw::mw::log::Error()
+activate FreeFunctions
+
+FreeFunctions -> LogStreamFactory : GetStream(LogLevel)
+activate LogStreamFactory
+
+LogStreamFactory -> Runtime : GetRecorder()
+Runtime -> LogStreamFactory : Recorder
+LogStreamFactory -> DataRouterRecorder : creates
+activate DataRouterRecorder
+
+LogStreamFactory -> LogStream : construct
+activate LogStream
+
+DataRouterRecorder -> DataRouterBackend : StartRecord(ctx, LogLevel)
+activate DataRouterBackend
+
+DataRouterBackend -> DataRouterRecorder : ReserveSlot()
+DataRouterRecorder -> LogStream : amp::optional<SlotHandle>
+
+LogStream -> LogStreamFactory : LogStream
+LogStreamFactory -> FreeFunctions : LogStream
+FreeFunctions -> App : LogStream
+
+App -> LogStream : << Some Data
+LogStream -> DataRouterRecorder : log(SlotHandle, Data)
+
+loop while logging data
+    DataRouterRecorder -> DLTFormater : write formatted data\ninto stream
+    note right : This part will be removed in future,\nonce we can directly stream into MrWriter\nthis will then remove any\ndynamic memory allocation.
+end
+
+App -> LogStream : Destruct
+LogStream -> DataRouterRecorder : StopRecord(SlotHandle)
+
+DataRouterRecorder -> TRACE : TRACE(LogEntry)
+activate TRACE
+TRACE -> DataRouterRecorder : 
+deactivate TRACE
+
+DataRouterRecorder -> LogStream : 
+deactivate DataRouterRecorder
+
+LogStream -> App : 
+deactivate LogStream
+
+deactivate DataRouterBackend
+deactivate LogStreamFactory
+deactivate FreeFunctions
+
+note over App, TRACE
+  Verbose logging sequence showing the complete flow
+  from application call to final trace output.
+  
+  Key points:
+  - LogStreamFactory creates LogStream with DataRouterRecorder
+  - DataRouterRecorder manages slot allocation and data formatting
+  - DLTFormater handles message formatting (to be removed)
+  - TRACE provides final log output
+end note
+
+@enduml
