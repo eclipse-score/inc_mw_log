@@ -49,10 +49,10 @@ class Recorder {
 }
 
 ' Relationships
-Runtime ||--|| DataRouterRecorder : "is owned by"
-DataRouterRecorder ||--|| StatisticsReporter : "composition"
-DataRouterRecorder ||--|| Configuration : "composition"
-DataRouterRecorder ||--|| DataRouterBackend : "composition"
+Runtime <-- DataRouterRecorder : "is owned by"
+DataRouterRecorder *-- StatisticsReporter : "composition"
+DataRouterRecorder *-- Configuration : "composition"
+DataRouterRecorder *-- DataRouterBackend : "composition"
 StatisticsReporter ..|> IStatisticsReporter : "implements"
 StatisticsReporter --> Recorder : "uses"
 

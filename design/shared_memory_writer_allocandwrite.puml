@@ -1,18 +1,17 @@
 @startuml
 start
-if (Payload size > max payload size) then (yes)
-:Acquire data;
-:Write header;
-:access memory;
-:Write payload;
-:Release acquired data;
+if (Payload size > max payload size) then (Yes)
+    :Increment number of drops;
+else(No)
+    :Acquire data;
+    if (Is data aquired?) then (Yes)
+        :Write header;
+        :Access memory;
+        :Write payload;
+        :Release acquired data;
+    else(No)
+        :Increment number of drops;
+    endif
+endif
 stop
-if (Is data aquired?) then (yes)
-:Increment number of drops counter due to invalid size
-style=wordwrap;
-:Increment number of drops counter due to buffer full
-style=wordwrap;
-if (merge
-
-layer=1) then (yes)
 @enduml

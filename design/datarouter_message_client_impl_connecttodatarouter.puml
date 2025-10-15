@@ -3,14 +3,17 @@ start
 :Block termination Signal;
 :Create sender;
 :Start receiver;
+if (Receiver started?) then (Yes)
+    if (Is exit requsted?) then (No)
+    :Send connect message;
+    stop
+    else (Yes)
+    endif
+else (No)
+    :Unlink shared memory file;
+    :Request stop for connection;
+    :Shutdown thread pool;
+endif
+:Merge;
 stop
-if (Is exit requsted?) then (yes)
-if (Receiver started?) then (yes)
-:Send connect message;
-:Unlink shared memory file;
-:Request stop for connection;
-:Shutdown thread pool;
-if (merge
-
-layer=-2) then (yes)
 @enduml

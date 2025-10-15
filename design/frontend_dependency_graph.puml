@@ -23,26 +23,25 @@ package "mw::log implementation details" as details {
   class RecorderFactory
 }
 
-Logger <-- LogStreamFactory
-Logger <-- LoggerContainer
-LogStreamFactory <-- LogStream
-LogStream <-- LogTypes
-Runtime <-- LogStream
-Runtime <-- LoggerContainer
-Runtime <-- IRecorder
-Runtime <-- IRecorderFactory
+Logger --> LogStreamFactory
+LoggerContainer --> Logger
+Logger --> LogStream
+LogStreamFactory --> LogStream
+LogStreamFactory --> Runtime
+LogStream --> LogTypes
+Runtime --> LoggerContainer
+Runtime --> IRecorder
+Runtime --> IRecorderFactory
 
 IRecorder <|.. DataRouterRecorder
 IRecorder <|.. ConsoleRecorder
 IRecorder <|.. FileRecorder
 IRecorder <|.. CompositeRecorder
 
-IRecorderFactory <|.. RecorderFactory
-
-RecorderFactory <-- DataRouterRecorder
-RecorderFactory <-- ConsoleRecorder
-RecorderFactory <-- FileRecorder
-RecorderFactory <-- CompositeRecorder
+RecorderFactory --> DataRouterRecorder
+RecorderFactory --> ConsoleRecorder
+RecorderFactory --> FileRecorder
+RecorderFactory --> CompositeRecorder
 
 Configuration <-- RecorderFactory
 Configuration <-- TargetConfigReader

@@ -1,13 +1,16 @@
 @startuml
+title Circular Buffer Allocator Acquire Slot To Write
 start
-:Increment loop counter;
-if (Loop counter > circular buffer size) then (yes)
-:Increment claimed slot;
-stop
-:Loop counter = 0;
-:Slot index = claimed slot % circular
-buffer capacity;
-if (Circular buffer at Slot index in use?) then (yes)
+:Loop Counter = 0;
+repeat :Increment loop counter;
+    :Increment claimed slot;
+    if (Loop counter > circular buffer size) then (Yes)
+        stop
+    else (no)
+        :Slot index = claimed slot % circular buffer capacity;
+    endif
+repeat while (Circular buffer at Slot index in use?) is (Yes) not (No);
 :Mark Slot as in use;
 :Return Slot index;
+stop
 @enduml
