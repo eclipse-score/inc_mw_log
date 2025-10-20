@@ -1,4 +1,5 @@
 @startuml configuration_sequence
+title Configuration Sequence
 
 participant "App" as App
 participant "FreeFunctions" as FF
@@ -9,104 +10,102 @@ participant "TargetConfigReader" as TCR
 participant "ConfigurationFileDiscoverer" as CFD
 participant "JSON" as JSON
 participant "OS" as OS
-participant "DatarouterRecorder" as DR
-participant "TextRecorder" as TR
-participant "CompositeRecorder" as CR
 
 App -> FF: Error()
-activate FF
+note right of App
+  If a user wants to avoid the latency
+  on the first log message, we provide
+  mw::log::Initialize() that shall 
+  take care of initializing the runtime.
+  If this method is called, the first
+  log message will directly use the
+  initialized records.
+end note
 
 FF -> LSF: GetStream(LogLevel)
 activate LSF
 
 LSF -> RT: GetRecorder()
-activate RT
+
+note left of RT
+  If no recorder exists yet,
+  create one using the factory.
+end note
 
 RT -> RF: CreateForTarget()
 activate RF
 
 RF -> TCR: ReadConfig()
-activate TCR
 
 TCR -> CFD: FindConfigurationFiles()
-activate CFD
-
-CFD -> OS: access(/etc/ecu_logging_config.json)
-CFD -> OS: access(MW_LOG_CONFIG_FILE)
-CFD -> OS: access(<cwd>/etc/logging.json)
-CFD -> OS: access(<cwd>/logging.json)
-
-CFD -> TCR: Return config file paths
-deactivate CFD
-
-TCR -> JSON: FromFile(global_file_path)
-activate JSON
-JSON -> TCR: 
-deactivate JSON
-
-alt MW_LOG_CONFIG_FILE is defined
-  TCR -> JSON: FromFile(environmental_file_path)
-  activate JSON
-  JSON -> TCR: 
-  deactivate JSON
-else MW_LOG_CONFIG_FILE is undefined
-  TCR -> JSON: FromFile(app_file_path)
-  activate JSON
-  JSON -> TCR: 
-  deactivate JSON
-end
-
-TCR -> RF: Return Configuration instance
-deactivate TCR
-
-RF -> DR: Create instance with configuration
-activate DR
-DR -> RF: 
-deactivate DR
-
-RF -> TR: Create instance with configuration
-activate TR
-TR -> RF: 
-deactivate TR
-
-RF -> CR: Create with Datarouter and StandardOut recorders
-activate CR
-CR -> RF: 
-deactivate CR
-
-RF -> RT: Store returned instance
-deactivate RF
-
-RT -> LSF: Return Recorder instance
-deactivate RT
-
-LSF -> FF: 
-deactivate LSF
-
-FF -> App: 
-deactivate FF
-
-note left of App
-  If a user wants to avoid the latency
-  on the first log message, we provide
-  mw::log::Initialize() that shall 
-  take care of initializing the runtime.
-end note
 
 note right of CFD
   Find and return the existing
   config files.
 end note
 
+CFD -> OS: access(/etc/ecu_logging_config.json)
+alt MW_LOG_CONFIG_FILE is defined
+  CFD -> OS: access(MW_LOG_CONFIG_FILE)
+else MW_LOG_CONFIG_FILE is undefined
+  CFD -> OS: access(<cwd>/etc/logging.json)
+  CFD -> OS: access(<cwd>/logging.json)
+  CFD -> OS: access(<binary path>/../etc/logging.json)
+end
+
+CFD -> TCR: Return global and environmental or application config file paths.
+
+TCR -> JSON: FromFile(global_file_path)
+JSON -> TCR: 
+
+alt MW_LOG_CONFIG_FILE is defined
+  TCR -> JSON: FromFile(<environmental file path>)
+  JSON -> TCR: 
+else MW_LOG_CONFIG_FILE is undefined
+  TCR -> JSON: FromFile(<app_file_path>)
+  JSON -> TCR: 
+end
+
+note right of TCR
+  Overwrite global configiuration
+  with environmental or application config file paths.
+end note
+
+TCR -> RF: Return Configuration instance
+
+group Possibilities
+
+note right of RF
+  For exmple, kRemote and kConsole
+  requested in configuration.
+end note
+
+Create "DatarouterRecorder" as DR
+
+RF -> DR: Create instance with configuration
+
+Create "TextRecorder" as TR
+
+RF -> TR: Create instance with configuration
+
+Create "CompositeRecorder" as CR
+
+RF -> CR: Create with Datarouter and StandardOut recorders
 note right of CR
   Composite Recorder will
   forward the logs to DatarouterRecorder
   and TextRecorder
 end note
 
-note right of RT
-  If no recorder exists yet,
-  create one using the factory.
-end note
+end
+
+
+
+RF -> RT: Store returned instance
+deactivate RF
+
+RT -> LSF: Return Recorder instance
+
+deactivate LSF
 
 @enduml

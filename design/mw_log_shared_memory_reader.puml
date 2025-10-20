@@ -1,5 +1,8 @@
 @startuml mw_log_shared_memory_reader
 
+package "mw::log"
+{
+
 interface ReaderFactory {
   + Create(const std::int32_t, const pid_t): amp::optional<SharedMemoryReader>
   + Default(): std::unique_ptr<ReaderFactory>
@@ -22,9 +25,9 @@ class SharedMemoryReader {
   - buffer_expected_to_read_next_: std::uint32_t
   - is_writer_detached_: bool
   - alternating_read_only_reader_: AlternatingReadOnlyReader
+  --
   - DetachWriter(): void
   - IsWriterDetached(): bool
-  --
   + SharedMemoryReader(const SharedData&, const amp::span<Byte>, const amp::span<Byte>, UnmapCallback)
   + Read(const TypeRegistrationCallback&, const NewRecordCallback&): std::optional<Length>
   + PeekNumberOfBytesAcquiredInBuffer(const std::uint32_t): std::optional<Length>
@@ -48,16 +51,15 @@ class LinearReader {
   + Read(): amp::optional<amp::span<Byte>>
 }
 
-class AlternatingReadOnlyReader {
-  - buffer_a_: amp::span<Byte>
-  - buffer_b_: amp::span<Byte>
-  - current_buffer_: std::uint32_t
-  --
-  + AlternatingReadOnlyReader(const amp::span<Byte>&, const amp::span<Byte>&)
-  + Read(): amp::optional<amp::span<Byte>>
-  + SwitchBuffer(): void
+class "bmw::os::Mman" as Mman {
+}
+  
+class "bmw::os::Stat" as Stat {
 }
 
+}
+
+package "bwm::platform::datarouter" as DataRouterPackage{
 class DataRouter {
   - subscriberDatabase_: SubscriberDatabase
   - databaseCallback_: WriteSubscriberDatabaseCallback
@@ -65,58 +67,17 @@ class DataRouter {
   + new_source_session(): SessionPtr
   + new_subscriber_session(): SessionPtr
 }
-
-package "bmw::os" {
-  class Mman {
-    + mmap(): void*
-    + munmap(): int
-  }
-  
-  class Stat {
-    + fstat(): int
-    + get_size(): size_t
-  }
 }
+
 
 ' Relationships
 ReaderFactory <|.. ReaderFactoryImpl
-ReaderFactoryImpl ..> SharedMemoryReader : "<<creates>>"
-ReaderFactoryImpl ..> Mman : "uses"
-ReaderFactoryImpl ..> Stat : "uses"
+ReaderFactoryImpl ..> Mman : "<< uses >>"
+ReaderFactoryImpl ..> Stat : "<< uses >>"
+ReaderFactoryImpl ..>  SharedMemoryReader : "<< creates >>"
+SharedMemoryReader --> SharedData: "<< uses >>"
+SharedMemoryReader --> LinearReader: "<< uses >>"
 
-SharedMemoryReader *-- SharedData
-SharedMemoryReader *-- LinearReader
-SharedMemoryReader *-- AlternatingReadOnlyReader
-
-SharedMemoryReader ..> DataRouter : "interacts with"
-
-note top of SharedMemoryReader
-  Reads log data from shared memory
-  buffers created by writers.
-  Supports both attached and detached
-  reading modes.
-end note
-
-note right of ReaderFactory
-  Factory pattern for creating
-  SharedMemoryReader instances
-  with proper OS abstractions
-end note
-
-note bottom of SharedData
-  Shared memory segment containing
-  ring buffers and metadata shared
-  between writer and reader processes
-end note
-
-note left of LinearReader
-  Reads data sequentially from
-  a single linear buffer
-end note
-
-note left of AlternatingReadOnlyReader
-  Reads from alternating buffers
-  to support wait-free operations
-end note
+DataRouter --> ReaderFactory : "<< uses >>"
 
 @enduml

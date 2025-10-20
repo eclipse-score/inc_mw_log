@@ -1,13 +1,35 @@
 @startuml
-participant "Logging Client" as Client
-participant "Datarouter Process" as Datarouter
-participant "DatarouterBackend" as Backend
+!$shmem_path="/tmp/logging.<appid>.<uid>.shmem\nwith permissions 0664"
+!$log_recv_path="/mw_com/message_passing/logging.<app>.<uid>"
+!$data_router_recv_path="/mw_com/message_passing/logging.datarouter_recv"
 
-Client -> Backend : Write log messages via shared memory
-Backend -> Datarouter : Forward messages
+component "<<Process>>\nLogging Client" as log_client {
+    component "mv::log" as log_client_log_lib{
+        portin "mv::com::Receiver" as log_client_receiver_port
+        portout "mv::com::Sender" as log_client_sender_port
+    }
+}
 
-note over Client : Creates and writes to shared memory buffer
-note over Backend : Read-only access to client buffers
-note over Backend : Creates a Sender for each client
-note over Backend : One receiver for all clients
+component "<<Process>>\nDatarouter" as data_router{
+        portout "mv::com:::Sender" as data_router_sender_port
+        portin "mv::com:::Receiver" as data_router_receiver_port
+}
+
+rectangle "Shared Memory" as shmem
+
+note left of data_router_receiver_port
+    One receiver for all clients $<data_router_recv_path>
+end note
+
+note left of log_client_receiver_port
+    Instantiates side channel to receive messages from <$log_recv_path>
+end note
+
+data_router_sender_port --> log_client_receiver_port : "Creates a Sender for each client to send requests to the client"
+log_client_sender_port --> data_router_receiver_port : "Creates a Sender to reply to requests from Datarouter"
+
+data_router --> shmem: "Read-only access"
+shmem --* log_client_log_lib: "Creates and write to\n<$shmem_path>"
+
+
 @enduml

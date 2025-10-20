@@ -1,9 +1,12 @@
 @startuml wait_free_linear_buffer
 
+note across 
+LinearControlBlock
+------
+endnote
+
 participant "Producer Thread 1\n(WaitFreeLinearWriter class)" as Producer1
 participant "Producer Thread 2\n(WaitFreeLinearWriter class)" as Producer2
-participant "LinearControlBlock" as ControlBlock
-
 note over ControlBlock
   **Initial State:**
   acquired_index == 0, written_index == 0

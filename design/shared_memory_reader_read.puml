@@ -2,14 +2,10 @@
 title SharedMemoryReader::Read
 
 start
-if (Finished reading after detach?) then (no)
+if (Finished reading after detach?) then (No)
+  :ReadAquiredData;
   :ReadRemainingDataIfWriterIsDetached;
-else (yes)
-  if (Is Data acquired?) then (yes)
-    :ReadAquiredData;
-  else (no)
-    :ReadAquiredData;
-  endif
+else (Yes)
 endif
 stop
 
@@ -19,10 +15,14 @@ stop
 title ReadAcquiredData
 
 start
-:CreateReaderForBuffer;
-:ReadLinearBuffer;
-:Set flag to indicate if buffer1 is expected to read next is already acquired or not based on acquired data;
-:Reset acquired data;
+if (Is Data acquired) then (Yes)
+  :CreateReaderForBuffer;
+  :ReadLinearBuffer;
+  :Set flag to indicate if buffer1 is expected to read next is already acquired
+  or not based on acquired data;
+  :Reset acquired data;
+else (No)
+endif
 stop
 
 @enduml
@@ -48,31 +48,26 @@ stop
 title ReadLinearBuffer
 
 start
-if (Read successful?) then (no)
-  stop
-else (yes)
+while (Read succesfull?) is (Yes)
   if (Length of Read result < buffer entry header size) then (yes)
-    stop
-  else (no)
+  else (No)
     :Initialize header span from Read result;
     :Copy header span to buffer entry header;
     :Initialize payload span from Read result;
-    if (Header type identifier == register type token) then (yes)
-      if (Payload span length < type registration ID) then (no)
+    if (Header type identifier == register type token) then (Yes)
+      if (Payload span length < type registration ID) then (No)
         :Copy memory from payload span to type registration ID;
         :Type ID size = size of type registration ID;
         :Type registration data = subspan of type ID size from payload span;
         :Trigger type registration callback with created type registration;
-      else (yes)
-        :Init shared memory record with existing header and payload span;
-        :Trigger new message callback with shared memory record;
+      else(Yes)
       endif
-    else (no)
+    else (No)
       :Init shared memory record with existing header and payload span;
       :Trigger new message callback with shared memory record;
     endif
   endif
-endif
+endwhile (No)
 stop
 
 @enduml
@@ -82,7 +77,6 @@ title ReadRemainingDataIfWriterIsDetached
 
 start
 if (Is writer detached?) then (no)
-  stop
 else (yes)
   :Reader = CreateReaderForBuffer;
   :ReadLinearBuffer;

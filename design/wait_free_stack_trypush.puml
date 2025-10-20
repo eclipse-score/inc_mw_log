@@ -1,13 +1,18 @@
 @startuml
+title Wait Free Stack TryPush
 start
 if (Stack capacity is full?) then (yes)
-:Current write index = write index;
-if (Current write index >= number
-of elements in stack) then (yes)
-:Increment write index;
-:Return null value;
-:Push element to stack;
-:Return element value;
+else (No)
+    :Current write index = write index;
+    :Increment write index;
+    if (Current write index >= number of elements in stack) then (yes)
+        :Stack capacity full = true;
+    else (No)
+    :Push element to stack;
+    :Return element value;
+    stop
+    endif
+endif
+    :Return null value;
 stop
-:Stack capacity full = true;
 @enduml

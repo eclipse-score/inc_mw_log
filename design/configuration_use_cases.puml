@@ -22,29 +22,4 @@ Dev2 --> UC2_Default : "Use case 2"
 
 PerfEng --> UC3_Performance : "Use case 3"
 
-note top of UC1_ECU
-  ECU-wide configuration affects
-  all applications on the target
-end note
-
-note top of UC1_App
-  Application-specific configuration
-  overrides ECU-wide settings
-end note
-
-note right of UC2_Console
-  For development and debugging,
-  console output is essential
-end note
-
-note right of UC2_Default
-  Default behavior should work
-  without configuration files
-end note
-
-note right of UC3_Performance
-  Performance testing requires
-  ability to disable logging
-end note
-
 @enduml

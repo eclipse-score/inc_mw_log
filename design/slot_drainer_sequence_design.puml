@@ -9,6 +9,7 @@ participant ":SlotAllocator<LogRecord>" as SlotAllocator
 
 note over SlotDrainer : Slot Drainer Flush Sequence
 
+group "First Slot"
 Backend -> SlotDrainer : flush(ctx_id, log_level)
 activate SlotDrainer
 
@@ -17,45 +18,25 @@ SlotDrainer -> CircularBuffer : pop()
 SlotDrainer -> SlotAllocator : GetUnderlyingBufferFor(slot)
 SlotDrainer -> MessageBuilder : SetNextMessage(log_record)
 
-loop while more data available
-    SlotDrainer -> MessageBuilder : GetNextSpan()
-    SlotDrainer -> NonBlockingWriter : flush()
+SlotDrainer -> MessageBuilder : GetNextSpan()
+SlotDrainer -> NonBlockingWriter : flush()
 end
+
+group "Last Slot"
 
 SlotDrainer -> CircularBuffer : pop()
 SlotDrainer -> SlotAllocator : GetUnderlyingBufferFor(slot)
 SlotDrainer -> MessageBuilder : SetNextMessage(log_record)
 
-loop while more spans available
-    SlotDrainer -> MessageBuilder : GetNextSpan()
-    SlotDrainer -> NonBlockingWriter : flush()
-end
+SlotDrainer -> MessageBuilder : GetNextSpan()
+SlotDrainer -> NonBlockingWriter : flush()
 
 SlotDrainer -> CircularBuffer : pop()
-note right of CircularBuffer : <empty>
+CircularBuffer -> SlotDrainer: <empty>
 
 Backend <-- SlotDrainer
 deactivate SlotDrainer
 
-note over SlotDrainer, NonBlockingWriter
-  The SlotDrainer processes slots from the circular buffer,
-  converts them to message spans via MessageBuilder,
-  and flushes them using NonBlockingWriter.
-end note
-
-note over CircularBuffer
-  Circular buffer stores slot handles
-  that need to be drained.
-end note
-
-note over MessageBuilder
-  Converts log records to serialized
-  message spans for output.
-end note
-
-note over NonBlockingWriter
-  Writes message spans to output
-  (file, network, etc.) without blocking.
-end note
+end
 
 @enduml

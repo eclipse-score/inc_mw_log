@@ -1,12 +1,12 @@
 @startuml mw_log_datarouter_recorder
 
 class DataRouterRecorder {
-  - LogData(const SlotHandle&, const T data): void
-  - SetApplicationId(LogRecord&): void
   - backend_: std::unique_ptr<Backend>
   - config_: Configuration
   - statistics_reporter_: StatisticsReporter
   --
+  - LogData(const SlotHandle&, const T data): void
+  - SetApplicationId(LogRecord&): void
   + DataRouterRecorder(std::unique_ptr<Backend>&&, const Configuration&)
   + StartRecord(const std::string_view, const LogLevel): amp::optional<SlotHandle>
   + StopRecord(const SlotHandle&): void
@@ -49,11 +49,11 @@ class Recorder {
 }
 
 ' Relationships
-Runtime ||--|| DataRouterRecorder : "is owned by"
-DataRouterRecorder ||--|| StatisticsReporter : "composition"
-DataRouterRecorder ||--|| Configuration : "composition"
-DataRouterRecorder ||--|| DataRouterBackend : "composition"
-StatisticsReporter ..|> IStatisticsReporter : "implements"
+Runtime <-- DataRouterRecorder : "is owned by"
+DataRouterRecorder *-- StatisticsReporter
+DataRouterRecorder *-- Configuration
+DataRouterRecorder *-- DataRouterBackend
+StatisticsReporter ..|> IStatisticsReporter
 StatisticsReporter --> Recorder : "uses"
 
 @enduml
