@@ -3,72 +3,88 @@
 participant ":App" as App
 participant "FreeFunctions" as FreeFunctions
 participant "LogStreamFactory" as LogStreamFactory
-participant ":LogStream" as LogStream
 participant ":Runtime" as Runtime
+participant ":LogStream" as LogStream
 participant ":DataRouterRecorder" as DataRouterRecorder
 participant "DLTFormater" as DLTFormater
 participant ":DataRouterBackend" as DataRouterBackend
 participant "TRACE" as TRACE
 
 App -> FreeFunctions : bmw::mw::log::Error()
-activate FreeFunctions
 
 FreeFunctions -> LogStreamFactory : GetStream(LogLevel)
 activate LogStreamFactory
 
 LogStreamFactory -> Runtime : GetRecorder()
+Runtime -> DataRouterRecorder : create
 Runtime -> LogStreamFactory : Recorder
-LogStreamFactory -> DataRouterRecorder : creates
-activate DataRouterRecorder
 
 LogStreamFactory -> LogStream : construct
 activate LogStream
 
-DataRouterRecorder -> DataRouterBackend : StartRecord(ctx, LogLevel)
-activate DataRouterBackend
+LogStream -> DataRouterRecorder : StartRecord(ctx, LogLevel)
+activate DataRouterRecorder
 
-DataRouterBackend -> DataRouterRecorder : ReserveSlot()
+DataRouterRecorder -> DataRouterBackend : ReserveSlot()
+
+activate DataRouterBackend
+DataRouterBackend -> DataRouterRecorder : amp::optional<SlotHandle>
+deactivate DataRouterBackend
+
 DataRouterRecorder -> LogStream : amp::optional<SlotHandle>
 
 LogStream -> LogStreamFactory : LogStream
 LogStreamFactory -> FreeFunctions : LogStream
+deactivate LogStreamFactory
+deactivate LogStream
+
 FreeFunctions -> App : LogStream
 
 App -> LogStream : << Some Data
+activate LogStream
 LogStream -> DataRouterRecorder : log(SlotHandle, Data)
 
-loop while logging data
-    DataRouterRecorder -> DLTFormater : write formatted data\ninto stream
-    note right : This part will be removed in future,\nonce we can directly stream into MrWriter\nthis will then remove any\ndynamic memory allocation.
-end
+DataRouterRecorder -> DataRouterBackend : GetStream(SlotHandle)
+activate DataRouterBackend
+DataRouterBackend -> DataRouterRecorder : std::streambuf&
+deactivate DataRouterBackend
+
+DataRouterRecorder -> DLTFormater : Log(std::streambuf&, data)
+activate DLTFormater
+DLTFormater -> DLTFormater: Write formatted data into stream
+DLTFormater -> DataRouterRecorder
+deactivate DLTFormater
+
+DataRouterRecorder -> LogStream
+deactivate DataRouterRecorder
+LogStream -> App : LogStream
+deactivate LogStream
 
 App -> LogStream : Destruct
+activate LogStream
 LogStream -> DataRouterRecorder : StopRecord(SlotHandle)
+activate DataRouterRecorder
 
-DataRouterRecorder -> TRACE : TRACE(LogEntry)
-activate TRACE
-TRACE -> DataRouterRecorder : 
-deactivate TRACE
+DataRouterRecorder -> DataRouterBackend: FlushSlot(SlotHandle)
+activate DataRouterBackend
+DataRouterBackend -> TRACE : TRACE(LogEntry)
+DataRouterBackend -> DataRouterRecorder
 
-DataRouterRecorder -> LogStream : 
+DataRouterRecorder -> LogStream
+deactivate DataRouterBackend
 deactivate DataRouterRecorder
-
-LogStream -> App : 
+LogStream -> App
 deactivate LogStream
+
+note over TRACE
+This part will be reomved in the future,
+once we can directly stream into MrWriter
+This will then remove any
+dynamic memory allocaitons.
+end note
 
 deactivate DataRouterBackend
 deactivate LogStreamFactory
 deactivate FreeFunctions
-
-note over App, TRACE
-  Verbose logging sequence showing the complete flow
-  from application call to final trace output.
-  
-  Key points:
-  - LogStreamFactory creates LogStream with DataRouterRecorder
-  - DataRouterRecorder manages slot allocation and data formatting
-  - DLTFormater handles message formatting (to be removed)
-  - TRACE provides final log output
-end note
 
 @enduml

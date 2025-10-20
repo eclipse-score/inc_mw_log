@@ -13,14 +13,14 @@ class "<<Singleton>>\nbmw::platform::logger" as Logger {
   + get_config(): const Configuration&
   + get_non_verbose_config(): const NvConfig&
   + GetSharedMemoryWriter(): SharedMemoryWriter&
-  + InjectTestInstance(logger* const logger_ptr): void {static}
+  + {static} InjectTestInstance(logger* const logger_ptr): void
 }
 
-class log_entry {
+class "log_entry<T>" as log_entry <<template>> {
   - default_enabled_: bool
   - shared_memory_id_: std::atomic<bmw::mw::log::detail::TypeIdentifier>
   --
-  + instance(): log_entry& {static}
+  + {static} instance(): log_entry&
   + RegisterTypeGetId(): amp::optional<bmw::mw::log::detail::TypeIdentifier>
   + TrySerializeIntoSharedMemory(T): void
   + TryWriteIntoSharedMemory(const T&): void
@@ -31,9 +31,6 @@ class log_entry {
 }
 
 class Configuration {
-  + app_id: LoggingIdentifier
-  + log_level: LogLevel
-  + buffer_size: size_t
 }
 
 class NvConfig {
@@ -46,9 +43,6 @@ class NvConfig {
 }
 
 class SharedMemoryWriter {
-  + WriteMessage(const TypeIdentifier&, const void*, size_t): bool
-  + GetBuffer(): void*
-  + IsConnected(): bool
 }
 
 class NvMsgDescriptor {
@@ -59,66 +53,30 @@ class NvMsgDescriptor {
 }
 
 class LoggingIdentifier {
-  + value: uint32_t
-  --
-  + LoggingIdentifier(const char*)
-  + toString(): std::string
 }
 
-class "Free Functions" as FreeFunctions <<Note>> {
-  + TRACE()
-  + TRACE_ERROR()
-  + TRACE_WARN()
-  + TRACE_INFO()
-  + TRACE_DEBUG()
-  + TRACE_LEVEL()
-  + LOG_ENTRY()
+package "Free pulic functions" {
+  class "LOG_ENTRY() <<function>>" as log_entry_func { }
+  class "TRACE() <<function>>" as trace_func { }
+  class "TRACE_*() <<function>>" as trace_all_func{ }
+  class "TRACE_LEVEL() <<function>>" as trace_level_func { }
 }
 
 ' Relationships
 Logger *-- Configuration : "owns"
 Logger *-- NvConfig : "owns"
 Logger *-- SharedMemoryWriter : "owns"
-Logger ..> log_entry : "<<friend>>"
 
-NvConfig *-- NvMsgDescriptor : "contains"
-NvMsgDescriptor *-- LoggingIdentifier : "uses"
+Logger ..> log_entry : "<< friend >>"
 
-log_entry ..> SharedMemoryWriter : "writes to"
-log_entry ..> Logger : "accesses"
+log_entry --* SharedMemoryWriter : "owns"
+log_entry --> Logger : "<< uses >>"
 
-FreeFunctions ..> log_entry : "uses"
-FreeFunctions ..> Logger : "uses"
+NvConfig *-- NvMsgDescriptor : "<< uses >>"
+NvMsgDescriptor *-- LoggingIdentifier
 
-note top of Logger
-  Singleton pattern implementation
-  for non-verbose logging system.
-  Manages configuration and shared
-  memory communication.
-end note
-
-note right of log_entry
-  Template class that handles
-  type-specific logging operations
-  and shared memory serialization.
-end note
-
-note bottom of SharedMemoryWriter
-  Handles communication with
-  external log consumers via
-  shared memory segments.
-end note
-
-note left of FreeFunctions
-  Global convenience functions
-  that provide easy access to
-  logging functionality.
-end note
-
-note right of NvConfig
-  Configuration parser for
-  non-verbose logging settings
-  loaded from JSON files.
-end note
-
+log_entry_func --> log_entry
+trace_func --> log_entry
+trace_all_func --> log_entry
+trace_level_func --> log_entry
 @enduml
