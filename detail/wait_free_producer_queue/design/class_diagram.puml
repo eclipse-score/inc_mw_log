@@ -35,51 +35,14 @@ class AlternatingReader {
   + Switch(): void
 }
 
-' Relationships
 WaitFreeLinearWriter --> LinearControlBlock : "uses"
 LinearReader --> LinearControlBlock : "uses"
 
-AlternatingControlBlock *-- LinearControlBlock : "composition"
+AlternatingControlBlock *-- LinearControlBlock
+WaitFreeAlternatingWriter *-- WaitFreeLinearWriter
+AlternatingReader *-- LinearReader
 
 WaitFreeAlternatingWriter --> AlternatingControlBlock : "uses"
 AlternatingReader --> AlternatingControlBlock : "uses"
-
-note top of LinearControlBlock
-  Plain Old Data (POD) structure
-  containing shared memory control
-  information for linear buffer.
-end note
-
-note bottom of AlternatingControlBlock
-  POD structure containing two
-  linear control blocks for
-  alternating buffer strategy.
-end note
-
-note left of WaitFreeLinearWriter
-  Wait-free writer implementation
-  for single linear buffer.
-  Multiple writers can operate
-  concurrently without blocking.
-end note
-
-note right of LinearReader
-  Single-threaded reader for
-  linear buffer. Reads data
-  sequentially from buffer.
-end note
-
-note left of WaitFreeAlternatingWriter
-  Wait-free writer for alternating
-  buffers. Switches between two
-  linear buffers to avoid
-  reader-writer conflicts.
-end note
-
-note right of AlternatingReader
-  Reader for alternating buffers.
-  Can switch between buffers
-  when current buffer is full.
-end note
 
 @enduml
