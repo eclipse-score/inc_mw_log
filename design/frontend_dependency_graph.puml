@@ -1,4 +1,5 @@
 @startuml frontend_dependency_graph
+title Frontend Dependency Graph
 
 package "mw::log frontend" as frontend {
   class Logger {

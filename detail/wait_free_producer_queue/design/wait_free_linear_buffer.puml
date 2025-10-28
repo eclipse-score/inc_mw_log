@@ -1,72 +1,84 @@
 @startuml wait_free_linear_buffer
+title Wait-Free Linear Buffer - 2 Producers
 
-note across 
-LinearControlBlock
-------
+state LinearControlBlock
+LinearControlBlock: acquired_index == 0, written_index == 0
+
+state LinearControlBlockEnd
+LinearControlBlockEnd: acquired_index == 0, written_index == 96
+
+state "Producer Thread 1" as ProducerThread1 
+ProducerThread1: WaitFreeLinearWriter class
+
+state "Producer Thread 2" as ProducerThread2 
+ProducerThread2: WaitFreeLinearWriter class
+
+state fork_state <<fork>>
+state join_state <<join>>
+
+state "Acquire(64 bytes)" as Acquire64
+Acquire64: length_index = acquired_index.fetch_add(8 + 64)
+Acquire64: acquired_index == 72
+Acquire64: length_index == 0
+
+state Acquire64Completed <<choice>>
+note right of Acquire64Completed
+Wait for previouse acquire to complete.
 endnote
 
-participant "Producer Thread 1\n(WaitFreeLinearWriter class)" as Producer1
-participant "Producer Thread 2\n(WaitFreeLinearWriter class)" as Producer2
-note over ControlBlock
-  **Initial State:**
-  acquired_index == 0, written_index == 0
-end note
+state Release16Completed <<choice>>
+note left of Release16Completed
+Wait for previous release to complete.
+endnote
 
-Producer1 -> ControlBlock : Acquire(64 bytes)
-note right
-  length_index = acquired_index.fetch_add(8 + 64)
-  acquired_index == 72
-  length_index == 0
-end note
+state "WriteDataProducer1(acquired_data)" as WriteDataProducer1
+WriteDataProducer1: Writing on range, range [8:72)
 
-Producer1 -> Producer1 : WriteDataProducer1(acquired_data)
-note right : Writing on range [8:72)
+state "Release(64 bytes)" as Release64
+Release64: written_index == (8 + 64)
 
-Producer2 -> ControlBlock : Acquire(16 bytes)
-note right
-  acquired_index == 96
-  length_index == 72
-end note
+state "WriteDataDataProducer2(acquired_data)" as WriteDataProducer2
+WriteDataProducer2: Writing on buffer 2, range [80:96)
 
-note over Producer1, Producer2 : **happens before**
+state "Acquire(16 bytes)" as Acquire16
+Acquire16: acquired_index == 96
+Acquire16: length_index == 72
 
-Producer2 -> Producer2 : WriteDataProducer2(acquired_data)
-note right : Writing on range [80:96)
+state "Release(16 bytes)" as Release16
+Release16: written_index.fetch_add(8 + 16)
+Release16: written_index == 8 + 16
 
-note over Producer1, Producer2 : **Concurrent Writing**
+[*] --> LinearControlBlock
 
-Producer2 -> ControlBlock : Release(16 bytes)
-note right
-  written_index.fetch_add(8 + 16)
-  written_index == 8 + 16
-end note
+LinearControlBlock --> fork_state
 
-note over Producer2, Producer1 : **happens before**
+fork_state --> ProducerThread2
+fork_state --> ProducerThread1
 
-Producer1 -> ControlBlock : Release(64 bytes)
-note right
-  written_index == 24 + (8 + 64)
-end note
+' Producer
+ProducerThread1 --> Acquire64
+Acquire64 --> WriteDataProducer1
+Acquire64 -[dotted]-> Acquire64Completed
+WriteDataProducer1 --> Release16Completed
+Release16Completed --> Release64
+Release64 --> join_state
 
-note over ControlBlock
-  **Final State:**
-  acquired_index == written_index == 96
-end note
+' Consumer
+ProducerThread2 -->  Acquire64Completed
+Acquire64Completed --> Acquire16
+Acquire16 --> WriteDataProducer2
+WriteDataProducer2 --> Release16
+Release16 --> join_state
+Release16 -[dotted]-> Release16Completed
 
-note left of Producer1
-  **Linear Buffer Content:**
-  
-  **[0:8)** - Length of Producer1
-  Data: 64
-  
-  **[8:72)** - Payload of Producer1
-  Data: WriteDataProducer1()
-  
-  **[72:80)** - Length of Payload 2
-  Data: 16
-  
-  **[80:96)** - Payload of Producer2
-  Data: WriteDataProducer2()
+join_state --> LinearControlBlockEnd
+LinearControlBlockEnd --> [*]
+
+note bottom of LinearControlBlockEnd
+Linear Buffer Content:
+| Index Range | [0:8) | [8:72) | [72:80) | [80:96) |
+| Data | Data: 64 | Data: WriteDataProducer1() | Data: 16 | Data: WriteDataProducer2() |
+| Description | Legth of Payload 1 | Payload of Producer 1 | Length of Payload 2 | Payload of Producer 2 |
 end note
 
 @enduml

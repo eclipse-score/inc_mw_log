@@ -1,4 +1,5 @@
 @startuml mw_log_datarouter_recorder
+title mw::log::datarouter::recorder
 
 class DataRouterRecorder {
   - backend_: std::unique_ptr<Backend>

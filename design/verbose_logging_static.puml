@@ -1,5 +1,32 @@
 @startuml verbose_logging_static
 
+package "Not Mockable Part" as NoMock
+{
+
+class LoggingIdentifier
+
+class RecorderIdentifier {
+  +value : size_t
+}
+
+class SlotHandle {
+  -recorder_to_slot_ : array
+  -recorder_slot_available_ : bitset
+  -selected_recorder_ : RecorderIdentifier
+  --
+  +SlotHandle()
+  +SlotHandle(index)
+  +GetSlotOfSelectedRecorder() : SlotIndex
+  +GetSlot(identifier) : SlotIndex
+  +SetSlot(index, identifier) : void
+  +GetSelectedRecorder() : RecorderIdentifier
+  +SetSelectedRecorder(identifier) : void
+  +IsRecorderActive(identifier) : bool
+  +operator_equal(lhs, rhs) : bool
+  +operator_not_equal(lhs, rhs) : bool
+  +kMaxRecorders : size_t {static}
+}
+
 enum LogLevel {
   kOff = 0x00
   kFatal = 0x01
@@ -8,39 +35,6 @@ enum LogLevel {
   kInfo = 0x04
   kDebug = 0x05
   kVerbose = 0x06
-}
-
-class Logger {
-  -context_ : LoggingIdentifier
-  --
-  +Logger(ctxId)
-  +LogFatal() : LogStream
-  +LogError() : LogStream
-  +LogWarn() : LogStream
-  +LogInfo() : LogStream
-  +LogDebug() : LogStream
-  +LogVerbose() : LogStream
-  +WithLevel(level) : LogStream
-  +IsLogEnabled(level) : bool
-  +IsEnabled(level) : bool
-  +GetContext() : string_view
-}
-
-class FreeFunctions {
-  +LogFatal() : LogStream
-  +LogError() : LogStream
-  +LogWarn() : LogStream
-  +LogInfo() : LogStream
-  +LogDebug() : LogStream
-  +LogVerbose() : LogStream
-  +LogFatal(context) : LogStream
-  +LogError(context) : LogStream
-  +LogWarn(context) : LogStream
-  +LogInfo(context) : LogStream
-  +LogDebug(context) : LogStream
-  +LogVerbose(context) : LogStream
-  +GetDefaultLogRecorder() : Recorder
-  +SetLogRecorder(recorder) : void
 }
 
 class LogStreamFactory {
@@ -68,52 +62,12 @@ class Runtime {
   +GetLoggerContainer() : LoggerContainer {static}
 }
 
-interface Recorder {
-  +StartRecord(context_id, LogLevel) : optional
-  +StopRecord(handle) : void
-  +Log(handle, value1) : void
-  +Log(handle, value2) : void
 }
 
-class DataRouterRecorder
-class TextRecorder 
-class FileRecorder
-class EmptyRecorder
+package "Mockable Part" as Mock
+{
 
-class Configuration
-
-interface Backend {
-  +ReserveSlot() : optional
-  +FlushSlot(handle) : void
-  +GetLogRecord(handle) : LogRecord
-}
-
-class DataRouterBackend {
-  +ReserveSlot() : optional
-  +FlushSlot(handle) : void
-  +GetLogRecord(handle) : LogRecord
-  --
-  -buffer_ : CircularAllocator
-  -message_client_ : unique_ptr
-}
-
-class SlotHandle {
-  -recorder_to_slot_ : array
-  -recorder_slot_available_ : bitset
-  -selected_recorder_ : RecorderIdentifier
-  --
-  +SlotHandle()
-  +SlotHandle(index)
-  +GetSlotOfSelectedRecorder() : SlotIndex
-  +GetSlot(identifier) : SlotIndex
-  +SetSlot(index, identifier) : void
-  +GetSelectedRecorder() : RecorderIdentifier
-  +SetSelectedRecorder(identifier) : void
-  +IsRecorderActive(identifier) : bool
-  +operator_equal(lhs, rhs) : bool
-  +operator_not_equal(lhs, rhs) : bool
-  +kMaxRecorders : size_t {static}
-}
+class TRACE_MACRO
 
 class LogRecord {
   -logEntry_ : LogEntry
@@ -171,17 +125,79 @@ class WaitFreeStack {
   +Find(predicate) : optional
 }
 
-class LoggingIdentifier
 
-class RecorderIdentifier {
-  +value : size_t
+interface Backend {
+  +ReserveSlot() : optional
+  +FlushSlot(handle) : void
+  +GetLogRecord(handle) : LogRecord
 }
 
-class TRACE_MACRO
+class DataRouterBackend {
+  +ReserveSlot() : optional
+  +FlushSlot(handle) : void
+  +GetLogRecord(handle) : LogRecord
+  --
+  -buffer_ : CircularAllocator
+  -message_client_ : unique_ptr
+}
+
+interface Recorder {
+  +StartRecord(context_id, LogLevel) : optional
+  +StopRecord(handle) : void
+  +Log(handle, value1) : void
+  +Log(handle, value2) : void
+}
+
+class DataRouterRecorder
+class TextRecorder 
+class FileRecorder
+class EmptyRecorder
+
+class Configuration
+}
+
+package "User-Facing API" as UserAPI
+{
+class Logger {
+  -context_ : LoggingIdentifier
+  ---
+  +Logger(ctxId)
+  +LogFatal() : LogStream
+  +LogError() : LogStream
+  +LogWarn() : LogStream
+  +LogInfo() : LogStream
+  +LogDebug() : LogStream
+  +LogVerbose() : LogStream
+  +WithLevel(level) : LogStream
+  +IsLogEnabled(level) : bool
+  +IsEnabled(level) : bool
+  +GetContext() : string_view
+}
+
+class FreeFunctions {
+  +LogFatal() : LogStream
+  +LogError() : LogStream
+  +LogWarn() : LogStream
+  +LogInfo() : LogStream
+  +LogDebug() : LogStream
+  +LogVerbose() : LogStream
+  +LogFatal(context) : LogStream
+  +LogError(context) : LogStream
+  +LogWarn(context) : LogStream
+  +LogInfo(context) : LogStream
+  +LogDebug(context) : LogStream
+  +LogVerbose(context) : LogStream
+  +GetDefaultLogRecorder() : Recorder
+  +SetLogRecorder(recorder) : void
+}
+}
 
 ' Relationships
 Logger ..> LogStreamFactory : uses
-FreeFunctions ..> LogStreamFactory : uses
+
+FreeFunctions --> LogStreamFactory : uses
+FreeFunctions --> Runtime
+
 LogStreamFactory ..> LogStream : create
 LogStream *-- Recorder : records data
 LogStream *-- SlotHandle : owns

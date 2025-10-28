@@ -1,52 +1,47 @@
 @startuml configuration_static
+title Configuration Static
 
 package "bmw::json" {
   class JsonParser {
-    +FromFile(path) : Result
+    +FromFile(path) : Result<bmw::json::Any>
   }
 }
 
-package "bmw::os" {
-  class Fcntl
-  class Mman  
+package "bmw::os" as os {
   class Unistd {
+    ---
     +access()
   }
-  class Stat
   class Stdlib {
+    ---
     +getenv()
   }
-  class Pthread
-  class Signal
   
-  package "utils" {
-    class Path {
-      +get_exec_path() : Result
-      +get_parent_dir() : string
-    }
+  class "utils/path" as Path {
+    ---
+    +get_exec_path() : Result
+    +get_parent_dir() : string
   }
 }
 
 interface Recorder {
-  +StartRecord(context_id, LogLevel) : optional
-  +StopRecord(SlotHandle) : void
-  +Log(SlotHandle, uint8_t) : void
-  +Log(SlotHandle, int8_t) : void
 }
 
-class TextRecorder
+class TextRecorder {}
+
 class DataRouterRecorder {
-  -configuration : Configuration
+  -configuration : bwm::mw::log::Configuration
 }
-class FileRecorder
-class EmptyRecorder
+class FileRecorder {}
+class EmptyRecorder {}
 class CompositeRecorder {
-  -config_ : Configuration
+  -config_ : bwm::mw::log::Configuration
 }
 
-class RecorderComposite {
-  +RecorderComposite(recorders)
-  -recorders_ : vector
+class RecorderComposite{
+  recorders_: std::vector<Recorder>
+  ---
+  RecorderComposite(recorders: std::vector<Recorder>)
 }
 
 class Configuration {
@@ -101,59 +96,66 @@ class Configuration {
 }
 
 interface ITargetConfigReader {
-  +ReadConfig() : Result
+  ---
+  +ReadConfig() : bmw::Result<Configuration>
 }
 
 class TargetConfigReader {
+  -discoverer_ : std::unique_ptr<IConfigurationFileDiscovery>
+  ---
   +TargetConfigReader(discoverer)
   +ReadConfig() : Result
-  -discoverer_ : unique_ptr
 }
 
-class TargetConfigReaderMock
+class TargetConfigReaderMock {}
 
 interface IConfigurationFileDiscoverer {
-  +FindConfigurationFiles() : vector
+  ---
+  +FindConfigurationFiles() : vector<std::string>
 }
 
 class ConfigurationFileDiscoverer {
-  -path_ : unique_ptr
-  -stdlib_ : unique_ptr
-  -unistd_ : unique_ptr
-  --
-  +ConfigurationFileDiscoverer(path, stdlib, unistd)
-  +FindConfigurationFiles() : vector
+  -path_ : unique_ptr<os::Path>
+  -stdlib_ : unique_ptr<os::Stdlib>
+  -unistd_ : unique_ptr<os::Unistd>
+  ---
+  +ConfigurationFileDiscoverer(path: std::unique_ptr<os::Path>,
+                               stdlib: std::unique_ptr<os::Stdlib>,
+                               unistd: std::unique_ptr<os::Unistd>)
+  +FindConfigurationFiles() : vector<std::string>
 }
 
-class ConfigurationFileDiscovererMock
+class ConfigurationFileDiscovererMock {}
 
 class RecorderFactory {
-  -GetRemoteRecorder(config) : unique_ptr
-  -GetFileRecorder(config, fcntl) : unique_ptr
-  -GetConsoleRecorder(config) : unique_ptr
-  --
-  +CreateFromConfiguration() : unique_ptr
-  +CreateFromConfiguration(reader) : unique_ptr
-  +CreateWithConsoleLoggingOnly() : unique_ptr
-  +CreateStub() : unique_ptr
-  +CreateRecorderFromLogMode(mode, config, fcntl) : unique_ptr
+  ---
+  -GetRemoteRecorder(config) : std::unique_ptr<Recorder>
+  -GetFileRecorder(config, fcntl) : std::unique_ptr<bmw::os::Fcntl>&>
+  -GetConsoleRecorder(config) : std::unique_ptr<Recorder>
+  +CreateFromConfiguration() : std::unique_ptr<Recorder>
+  +CreateFromConfiguration(const std::unique_ptr<const ITargetConfigReader>) : std::unique_ptr<Recorder>
+  +CreateWithConsoleLoggingOnly() : std::unique_ptr<Recorder>
+  +CreateStub() : std::unique_ptr<Recorder>
+  +CreateRecorderFromLogMode(const LogMode&, const Configuration&, const std::unique_ptr<bmw::os::Fcntl>) : std::unique_ptr<Recorder>
 }
 
 interface IRecorderFactory {
-  +CreateFromConfiguration() : unique_ptr
-  +CreateWithConsoleLoggingOnly() : unique_ptr
-  +CreateStub() : unique_ptr
+  ---
+  +CreateFromConfiguration() : unique_ptr<Recorder>
+  +CreateWithConsoleLoggingOnly() : std::unique_ptr<Recorder>
+  +CreateStub() : std::unique_ptr<Recorder>
 }
 
-class Runtime
+class Runtime {}
 
 class LoggingIdentifier {
-  +LoggingIdentifier(value)
-  +GetStringView() : string_view
-  +operator_equal(lhs, rhs) : bool
-  +operator_not_equal(lhs, rhs) : bool
-  +kMaxLength : size_t
-  +data_ : array
+  +kMaxLength : std::size_t
+  +data_ : std::array<std::string_view::value_type, kMaxLength>
+  ---
+  +LoggingIdentifier(const std::string_view)
+  +GetStringView(const std::string_view)
+  +operator_equal(const LoggingIdentifier&, const LoggingIdentifier&) : bool
+  +operator_not_equal(const LoggingIdentifier&, const LoggingIdentifier&) : bool
 }
 
 ' Inheritance relationships
@@ -170,25 +172,25 @@ ITargetConfigReader <|.. TargetConfigReaderMock
 IConfigurationFileDiscoverer <|-- ConfigurationFileDiscoverer
 IConfigurationFileDiscoverer <|-- ConfigurationFileDiscovererMock
 
-IRecorderFactory <|.. RecorderFactory
+IRecorderFactory <|-- RecorderFactory
 
 ' Composition and aggregation relationships
 DataRouterRecorder *-- Configuration : owns
 CompositeRecorder *-- Configuration : owns
-RecorderComposite *-- Recorder : owns
-TargetConfigReader *-- IConfigurationFileDiscoverer : owns
-ConfigurationFileDiscoverer *-- Path : uses
-ConfigurationFileDiscoverer *-- Stdlib : uses
-ConfigurationFileDiscoverer *-- Unistd : uses
+TextRecorder *-- Configuration : owns
+FileRecorder *-- Configuration : owns
+Recorder --* Runtime: Owns an instance of
+
+TargetConfigReader *-- IConfigurationFileDiscoverer
+ConfigurationFileDiscoverer --> os : uses
 Configuration *-- LoggingIdentifier : owns
 
 ' Usage relationships
-RecorderFactory ..> Configuration : uses
-RecorderFactory ..> ITargetConfigReader : uses
-RecorderFactory ..> Recorder : creates
+RecorderFactory --> TargetConfigReader: uses
 TargetConfigReader ..> Configuration : creates
+RecorderFactory --> RecorderComposite: creates
 TargetConfigReader ..> JsonParser : uses
-Runtime *-- IRecorderFactory : uses
+Runtime --> RecorderFactory : Uses on initalization
 
 note top of RecorderComposite
   Forwards the logs to all recorders
@@ -216,6 +218,10 @@ end note
 
 note bottom of TargetConfigReaderMock
   Used for unit testing the RecorderFactory.
+end note
+
+note top of DataRouterRecorder
+  Configuration passed to the constructor by value.
 end note
 
 note right of ConfigurationFileDiscoverer
