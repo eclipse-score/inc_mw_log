@@ -1,71 +1,117 @@
 @startuml wait_free_alternating_buffers
+title Wait-Free Alternating Buffers - Producer and Consumer Interaction
 
-participant "Producer Thread\n(WaitFreeAlternatingWriter class)" as Producer
-participant "Consumer Thread\n(AlternatingReader class)" as Consumer
-participant "AlternatingControlBlock" as ControlBlock
+state AlternativeControlBlock
+AlternativeControlBlock: acquired_data_1 == 0, written_index_1 == 0, number_of_writers_1 == 0
+AlternativeControlBlock: acquired_data_2 == 0, written_index_2 == 0, number_of_writers_2 == 0
+AlternativeControlBlock: active_for_writing == 1
 
-note over ControlBlock
-  **Initial State:**
-  acquired_index_1 == 0, written_index_1 == 0, number_of_writers_1 == 0
-  acquired_index_2 == 0, written_index_2 == 0, number_of_writers_2 == 0
-  active_for_writing == 1
+state AlternativeControlBlockEnd
+AlternativeControlBlockEnd: acquired_data_1 == 72, written_index_1 == 72, number_of_writers_1 == 0
+AlternativeControlBlockEnd: acquired_data_2 == 24, written_index_2 == 24, number_of_writers_2 == 0
+AlternativeControlBlockEnd: active_for_writing == 2
+
+state "Producer Thread" as ProducerThread 
+ProducerThread: WaitFreeAlternativeWriter class
+
+state "Consumer Thread" as ConsumerThread 
+ConsumerThread: AlternativeReader class
+
+state fork_state <<fork>>
+state join_state <<join>>
+
+state "Acquire(64 bytes)" as Acquire64
+Acquire64: number_of_writers_1.increment()
+Acquire64: acquired_index_1 == 72
+Acquire64: number_of_writers_1 == 1
+
+state "Acquire Complete" as  AcquireComplete <<choice>>
+state "Switch Complete" as  SwitchComplete <<choice>>
+
+state "Switch()" as Switch {
+state "Reset buffer 2 for writing" as Reset
+Reset: acquired_index_2.store(0)
+Reset: written_index_2.store(0)
+
+state "Toggle future writer buffer" as Toggle
+Toggle: active_for_writing.store(2)
+
+state "Block until pending writers finished on buffer 1" as Block
+
+Reset --> Toggle
+Toggle --> Block
+}
+
+state "WriteDataProducer1(acquired_data)" as WriteDataProducer1
+WriteDataProducer1: Writing on buffer 1, range [8:72)
+
+state "Release(64 bytes)" as Release64
+Release64: written_index_1 == (8 + 64)
+Release64: number_of_writers_1 == 0
+
+state "Read()" as Read
+Read: buffer_for_reading == 2
+Read: read_range == [8, 72)
+
+state "Process packet 1 on buffer 1, range [8:72)" as Process
+
+state "WriteData(16 bytes)" as WriteDataProducer2
+WriteDataProducer2: Writing on buffer 2, range [8:24)
+
+state "Acquire(16 bytes)" as Acquire16
+state "Release(16 bytes)" as Release16
+Release16: written_index_2 == (8 + 16)
+Release16: number_of_writers_2 == 0
+
+[*] --> AlternativeControlBlock
+
+AlternativeControlBlock --> fork_state
+
+fork_state --> ConsumerThread
+fork_state --> ProducerThread
+
+' Producer
+ProducerThread --> Acquire64
+Acquire64 --> WriteDataProducer1
+WriteDataProducer1 --> Release64
+Release64 --> SwitchComplete
+SwitchComplete --> Acquire16
+Acquire16 --> WriteDataProducer2
+WriteDataProducer2 --> Release16
+Release16 --> join_state
+
+' Consumer
+ConsumerThread -->  AcquireComplete
+AcquireComplete --> Switch
+Acquire64 -[dotted]-> AcquireComplete
+Switch --> Read
+Switch -[dotted]->  SwitchComplete 
+Read --> Process
+Process --> join_state
+
+join_state --> AlternativeControlBlockEnd
+AlternativeControlBlockEnd --> [*]
+
+note right of AcquireComplete
+Wait for Acquire to complete
+endnote
+
+note left of SwitchComplete
+Wait for Switch to complete
+endnote
+
+note bottom of AlternativeControlBlockEnd
+Linear Buffer 1 Content
+| Index Range | [0:8) | [8:72) |
+| Data | Data: 64 | Data: WriteDataProducer1() |
+| Description | Legth of Packet 1 | Producer 1, Packet 1 |
 end note
 
-Producer -> ControlBlock : Acquire(64 bytes)
-note right
-  number_of_writers_1.increment()
-  acquired_index_1 == 72
-  number_of_writers_1 == 1
-end note
-
-Producer -> Producer : WriteDataProducer1(acquired_data)
-note right
-  Writing on buffer 1, range [8:72)
-end note
-
-Consumer -> ControlBlock : Switch()
-note right
-  **Reset buffer 2 for writing:**
-  acquired_index_2.store(0)
-  written_index_2.store(0)
-  
-  **Toggle future writers to use buffer 2:**
-  active_for_writing.store(2)
-  
-  **Block until pending writers finished on buffer 1.**
-end note
-
-Producer -> ControlBlock : Release(64 bytes)
-note right
-  written_index_1 == (8 + 64)
-  number_of_writers_1 == 0
-end note
-
-note over ControlBlock
-  **Final State:**
-  acquired_index_1 == 72, written_index_1 == 72, number_of_writers_1 == 0
-  acquired_index_2 == 24, written_index_2 == 24, number_of_writers_2 == 0
-  active_for_writing == 2
-end note
-
-note left of Producer
-  **Linear Buffer 1 Content:**
-  
-  **[0:8)** - Length of Packet 1
-  Data: 64
-  
-  **[8:72)** - Producer 1, Packet 1
-  Data: WriteDataProducer1()
-end note
-
-note right of Consumer
-  **Linear Buffer 2 Content:**
-  
-  **[0:8)** - Length of Packet 2
-  Data: 16
-  
-  **[8:24)** - Producer1, Packet 2
-  Data: Packet 2
+note bottom of AlternativeControlBlockEnd
+Linear Buffer 2 Content
+| Index Range | [0:8) | [8:72) |
+| Data | Data: 16 | Data: Packet2 |
+| Description | Legth of Packet 2 | Producer 1, Packet 2 |
 end note
 
 @enduml

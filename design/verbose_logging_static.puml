@@ -1,247 +1,250 @@
-@startuml verbose_logging_static
+@startuml
 
-enum LogLevel {
-  kOff = 0x00
-  kFatal = 0x01
-  kError = 0x02
-  kWarn = 0x03
-  kInfo = 0x04
-  kDebug = 0x05
-  kVerbose = 0x06
+package "User-Facing API" {
+
+    class "Free Functions" as FreeFunctions <<utility>> {
+        + bmw::mw::LogFatal(): LogStream
+        + bmw::mw::LogError(): LogStream
+        + bmw::mw::LogWarn(): LogStream
+        + bmw::mw::LogInfo(): LogStream
+        + bmw::mw::LogDebug(): LogStream
+        + bmw::mw::LogVerbose(): LogStream
+        + bmw::mw::LogFatal(std::string_view): LogStream
+        + bmw::mw::LogError(std::string_view): LogStream
+        + bmw::mw::LogWarn(std::string_view): LogStream
+        + bmw::mw::LogInfo(std::string_view): LogStream
+        + bmw::mw::LogDebug(std::string_view): LogStream
+        + bmw::mw::LogVerbose(std::string_view): LogStream
+        + bmw::mw::GetDefaultLogRecorder(): Recorder&
+        + bmw::mw::test::SetLogRecorder(bmw::mw::log::Recorder *const): void
+    }
+
+    class bmw::mw::Logger {
+        - context_: LoggingIdentifier
+        + Logger(std::string_view ctxId)
+        + LogFatal(): LogStream
+        + LogError(): LogStream
+        + LogWarn(): LogStream
+        + LogInfo(): LogStream
+        + LogDebug(): LogStream
+        + LogVerbose(): LogStream
+        + WithLevel(LogLevel): log::LogStream
+        + IsLogEnabled(LogLevel): bool
+        + IsEnabled(LogLevel): bool
+        + GetContext(): std::string_view
+    }
+
 }
 
-class Logger {
-  -context_ : LoggingIdentifier
-  --
-  +Logger(ctxId)
-  +LogFatal() : LogStream
-  +LogError() : LogStream
-  +LogWarn() : LogStream
-  +LogInfo() : LogStream
-  +LogDebug() : LogStream
-  +LogVerbose() : LogStream
-  +WithLevel(level) : LogStream
-  +IsLogEnabled(level) : bool
-  +IsEnabled(level) : bool
-  +GetContext() : string_view
+
+package "Not Mockable Part" {
+
+    struct LoggingIdentifier {}
+
+    class bmw::mw::log::detail::LogStreamFactory {
+        + GetStream(LogLevel, ctxId: std::string_view = "DFLT"): LogStream
+    }
+
+    class bmw::mw::LogStream {
+        - recorder_: Recorder&
+        - slot_handle_: amp::optional<SlotHandle>
+        - context_id_: detail::LoggingIdentifier
+        - log_level_: LogLevel
+        - LogStream(Recorder&, LogLevel, std::string_view)
+        + LogStream(LogStream&&)
+        + Flush(): void
+    }
+
+    class bmw::mw::log::SlotHandle {
+        - recorder_to_slot_: std::array<SlotIndex, kMaxRecorders>
+        - recorder_slot_available_: std::bitset<kMaxRecorders>
+        - selected_recorder_: RecorderIdentifier
+        + SlotHandle()
+        + SlotHandle(SlotIndex)
+        + GetSlotOfSelectedRecorder(): SlotIndex
+        + GetSlot(RecorderIdentifier): SlotIndex
+        + SetSlot(SlotIndex, RecorderIdentifier): void
+        + GetSelectedRecorder(): RecorderIdentifier
+        + SetSelectedRecorder(RecorderIdentifier): void
+        + IsRecorderActive(RecorderIdentifier): bool
+        + friend operator==(const SlotHandle& l_value, const SlotHandle& r_value): bool
+        + friend operator!=(const SlotHandle& l_value, const SlotHandle& r_value): bool
+        + kMaxRecorders: {static} constexpr std::size_t
+    }
+
+    class bmw::mw::log::detail::Runtime {
+        - Runtime(Recorder *const recorder)
+        - {static} Instance(Recorder *const): Runtime&
+        - logger_container_instance_: LoggerContainer
+        - recorder_instance_: Recorder
+        - default_recorder_: std::unique_ptr<Recorder>
+        + GetRecorder(): Recorder *
+        + SetRecorder(Recorder *): void__
+        + GetLoggerContainer(): bmw::mw::log::LoggerContainer&
+    }
+
+    struct SlotHandle::RecorderIdentifier {
+        + value: std::size_t
+    }
+
+    enum bmw::mw::LogLevel {
+        kOff = 0x00
+        kFatal = 0x01
+        kError = 0x02
+        kWarn = 0x03
+        kInfo = 0x04
+        kDebug = 0x05
+        kVerbose = 0x06
+    }
+
 }
 
-class FreeFunctions {
-  +LogFatal() : LogStream
-  +LogError() : LogStream
-  +LogWarn() : LogStream
-  +LogInfo() : LogStream
-  +LogDebug() : LogStream
-  +LogVerbose() : LogStream
-  +LogFatal(context) : LogStream
-  +LogError(context) : LogStream
-  +LogWarn(context) : LogStream
-  +LogInfo(context) : LogStream
-  +LogDebug(context) : LogStream
-  +LogVerbose(context) : LogStream
-  +GetDefaultLogRecorder() : Recorder
-  +SetLogRecorder(recorder) : void
+
+package "Mockable Part" {
+
+    class bmw::mw::log::detail::VerbosePayload {
+        - buffer_: std::reference_wrapper<ByteVector>
+        + VerbosePayload(std::size_t, std::string&)
+        + Put(const Byte *, std::size_t): void
+        + Put(const ReserveCallback, std::size_t): std::size_t
+        + GetSpan(): amp::span<const std::uint8_t>
+        + Reset(): void
+        + WillOverflow(std::size_t): bool
+        + RemainingCapacity(): std::size_t
+        + SetBuffer(ByteVector&): void
+    }
+
+    struct LogEntry {
+        + appId: dltid_t
+        + ctxId: dltid_t
+        + sessionId: dltid_t
+        + logLevel: std::uint8_t
+        + num_of_args: std::int8_t
+        + payload: std::string
+    }
+
+    class bmw::mw::log::detail::LogRecord {
+        - logEntry_: LogEntry
+        - verbosePayload_: VerbosePayload
+        + getLogEntry(): LogEntry&
+        - getLogEntry() const: cosnt LogEntry&
+        - getVerbosePayload(): detail::VerbosePayload&
+        - getVerbosePayload() const: const detail::VerbosePayload&
+    }
+
+    entity TRACE_MACRO {}
+
+    entity Configuration {}
+
+    entity StatisticsReporter {}
+
+    class bmw::mw::log::detail::DataRouterBackend {
+        + ReserveSlot(): amp::optional<SlotHandle>
+        + FlushSlot(const SlotHandle&)
+        + GetLogRecord(const SlotHandle&): LogRecord
+        - buffer_: CircularAllocator<bmw::mw::log::detail::LogRecord>
+        - message_client_: std::unique_ptr<DatarouterMessageClient>
+    }
+
+    interface bmw::mw::log::detail::Backend {
+        + ReserveSlot(): amp::optional<SlotHandle>
+        + FlushSlot(const SlotHandle&)
+        + GetLogRecord(const SlotHandle&): LogRecord
+    }
+
+    interface bmw::mw::log::Recorder {
+        + Recorder()
+        + StartRecord(context_id: std::string_view, LogLevel): amp::optional<SlotHandle>
+        + StopRecord(const SlotHandle&): void
+        + Log(SlotHandle, std::uint8_t): void
+        + Log(SlotHandle, std::int8_t): void
+    }
+
+    class DataRouterRecorder {}
+
+    class TextRecorder {}
+
+    class FileRecorder {}
+
+    class EmptyRecorder {}
+
+    entity TextFormat {}
+
+    class bmw::mw::log::LoggerContainer {
+        - InsertNewLogger(std::string_view): Logger&
+        - FindExistingLogger(std::string_view): amp::optional<std::reference_wrapper<Logger>>
+        - stack_: WaitFreeStack<Logger>
+        - default_logger_: Logger
+        + GetLogger(std::string_view): Logger&
+        + GetCapacity(): std::size_t
+        + GetDefaultLogger(): Logger&
+    }
+
+    class "bmw::mw::log::detail::WaitFreeStack<Element>" as bmw::mw::log::detail::WaitFreeStack_of_Element {
+        - elements_: std::vector<amp::optional<Element>>
+        - elements_written_: std::vector<std::atomic_int>
+        - write_index_: AtomicIndex
+        - capacity_full_: AtomicBool
+        + WaitFreeStack(std::size_t)
+        + TryPush(Element&&): amp::optional<std::reference_wrapper<Element>>
+        + Find(const FindPredicate<Element>&): amp::optional<std::reference_wrapper<Element>>
+    }
+
 }
 
-class LogStreamFactory {
-  +GetStream(LogLevel, ctxId) : LogStream {static}
-}
 
-class LogStream {
-  -recorder_ : Recorder
-  -slot_handle_ : optional
-  -context_id_ : LoggingIdentifier
-  -log_level_ : LogLevel
-  --
-  +LogStream(recorder, level, context)
-  +LogStream(other)
-  +Flush() : void
-}
+bmw::mw::Logger --* LoggingIdentifier: owns
+bmw::mw::Logger --|> bmw::mw::log::detail::LogStreamFactory: uses
+bmw::mw::Logger --* bmw::mw::log::LoggerContainer: owns
 
-class Runtime {
-  -logger_container_instance_ : LoggerContainer
-  -recorder_instance_ : Recorder
-  -default_recorder_ : unique_ptr
-  --
-  +GetRecorder() : Recorder {static}
-  +SetRecorder(recorder) : void {static}
-  +GetLoggerContainer() : LoggerContainer {static}
-}
+FreeFunctions --|> bmw::mw::log::detail::LogStreamFactory: uses
+FreeFunctions --|> bmw::mw::log::detail::Runtime
 
-interface Recorder {
-  +StartRecord(context_id, LogLevel) : optional
-  +StopRecord(handle) : void
-  +Log(handle, value1) : void
-  +Log(handle, value2) : void
-}
+bmw::mw::log::detail::LogStreamFactory --|> bmw::mw::LogStream: create
+bmw::mw::log::detail::LogStreamFactory --|> bmw::mw::log::detail::Runtime: get current record
 
-class DataRouterRecorder
-class TextRecorder 
-class FileRecorder
-class EmptyRecorder
+bmw::mw::log::SlotHandle --* bmw::mw::LogStream: owns
 
-class Configuration
+bmw::mw::log::detail::VerbosePayload --* bmw::mw::log::detail::LogRecord: << creates and fills >>
 
-interface Backend {
-  +ReserveSlot() : optional
-  +FlushSlot(handle) : void
-  +GetLogRecord(handle) : LogRecord
-}
+LogEntry --* bmw::mw::log::detail::LogRecord: << creates and fills >>
 
-class DataRouterBackend {
-  +ReserveSlot() : optional
-  +FlushSlot(handle) : void
-  +GetLogRecord(handle) : LogRecord
-  --
-  -buffer_ : CircularAllocator
-  -message_client_ : unique_ptr
-}
+bmw::mw::log::detail::LogRecord --* bmw::mw::log::detail::DataRouterBackend: << creates and fills >>
 
-class SlotHandle {
-  -recorder_to_slot_ : array
-  -recorder_slot_available_ : bitset
-  -selected_recorder_ : RecorderIdentifier
-  --
-  +SlotHandle()
-  +SlotHandle(index)
-  +GetSlotOfSelectedRecorder() : SlotIndex
-  +GetSlot(identifier) : SlotIndex
-  +SetSlot(index, identifier) : void
-  +GetSelectedRecorder() : RecorderIdentifier
-  +SetSelectedRecorder(identifier) : void
-  +IsRecorderActive(identifier) : bool
-  +operator_equal(lhs, rhs) : bool
-  +operator_not_equal(lhs, rhs) : bool
-  +kMaxRecorders : size_t {static}
-}
+Configuration --* DataRouterRecorder: get application specific config
 
-class LogRecord {
-  -logEntry_ : LogEntry
-  -verbosePayload_ : VerbosePayload
-  --
-  +getLogEntry() : LogEntry
-  +getLogEntry() : LogEntry
-  +getVerbosePayload() : VerbosePayload
-  +getVerbosePayload() : VerbosePayload
-}
+StatisticsReporter --* DataRouterRecorder
 
-class LogEntry {
-  +appId : dltid_t
-  +ctxId : dltid_t 
-  +sessionId : dltid_t
-  +logLevel : uint8_t
-  +num_of_args : int8_t
-  +payload : string
-}
+bmw::mw::log::detail::DataRouterBackend --* DataRouterRecorder: << reserve and flush slots >>
+bmw::mw::log::detail::DataRouterBackend --|> TRACE_MACRO: << on sync >>
+bmw::mw::log::detail::DataRouterBackend ..|> bmw::mw::log::detail::Backend
 
-class VerbosePayload {
-  -buffer_ : reference_wrapper
-  --
-  +VerbosePayload(size, str)
-  +Put(bytes, size) : void
-  +Put(callback, size) : size_t
-  +GetSpan() : span
-  +Reset() : void
-  +WillOverflow(size) : bool
-  +RemainingCapacity() : size_t
-  +SetBuffer(buffer) : void
-}
+DataRouterRecorder --* bmw::mw::log::detail::Runtime: owns statically
+DataRouterRecorder ..|> bmw::mw::log::Recorder
+TextRecorder ..|> bmw::mw::log::Recorder
+FileRecorder ..|> bmw::mw::log::Recorder
+EmptyRecorder ..|> bmw::mw::log::Recorder
 
-class TextFormat
+bmw::mw::log::Recorder --o bmw::mw::LogStream: records data
+bmw::mw::log::Recorder ..> TextFormat: Log
 
-class StatisticsReporter
+bmw::mw::log::LoggerContainer --* bmw::mw::log::detail::Runtime: owns
 
-class LoggerContainer {
-  -stack_ : WaitFreeStack
-  -default_logger_ : Logger
-  --
-  +GetLogger(context) : Logger
-  +GetCapacity() : size_t
-  +GetDefaultLogger() : Logger
-}
+bmw::mw::log::detail::WaitFreeStack_of_Element --* bmw::mw::log::LoggerContainer: owns
 
-class WaitFreeStack {
-  -elements_ : vector
-  -elements_written_ : vector
-  -write_index_ : AtomicIndex
-  -capacity_full_ : AtomicBool
-  --
-  +WaitFreeStack(size)
-  +TryPush(element) : optional
-  +Find(predicate) : optional
-}
 
-class LoggingIdentifier
+note "This diagram only illustrates the use-case of verbose logging." as N0
+note "A user is allowed to use the Recorder interface for its abstraction, but it is not recommended due to its more complicated usage." as N1
+note "For the time being, DataRouterRecorder will not only be a facade but also contain DLT specific logic. In this case, calling StartRecord() and StopRecord." as N2
+note "In future this will be removed and we will stream into MwsrWriter." as N3
 
-class RecorderIdentifier {
-  +value : size_t
-}
+N1 .. bmw::mw::log::Recorder
 
-class TRACE_MACRO
+N2 .. DataRouterRecorder
 
-' Relationships
-Logger ..> LogStreamFactory : uses
-FreeFunctions ..> LogStreamFactory : uses
-LogStreamFactory ..> LogStream : create
-LogStream *-- Recorder : records data
-LogStream *-- SlotHandle : owns
+N3 .. bmw::mw::log::detail::VerbosePayload
+N3 .. LogEntry
+N3 .. TRACE_MACRO
 
-Recorder <|-- DataRouterRecorder
-Recorder <|-- TextRecorder
-Recorder <|-- FileRecorder
-Recorder <|-- EmptyRecorder
-
-Backend <|.. DataRouterBackend
-DataRouterRecorder *-- DataRouterBackend : reserve and flush slots
-DataRouterRecorder *-- Configuration : get application specific config
-DataRouterRecorder *-- StatisticsReporter
-
-Runtime *-- LoggerContainer : owns
-LoggerContainer *-- WaitFreeStack : owns
-LoggerContainer *-- Logger : owns
-Logger *-- LoggingIdentifier : owns
-
-DataRouterBackend ..> LogRecord : creates and fills
-LogRecord *-- LogEntry : creates and fills
-LogRecord *-- VerbosePayload : creates and fills
-
-TextRecorder ..> TextFormat : Log
-
-Runtime ..> Recorder : get current recorder
-
-TRACE_MACRO ..> Runtime : on sync
-
-note top of DataRouterBackend
-  For the time being,
-  DataRouterRecorder will not only be a facade
-  but contain DLT specific logic.
-  In this case calling
-  StartRecord() and StopRecord()
-end note
-
-note bottom of LogEntry
-  In future this will be removed
-  and we will stream into MwsrWriter
-end note
-
-note bottom of TRACE_MACRO
-  In future this will be removed
-  and we will stream into MwsrWriter
-end note
-
-note bottom of VerbosePayload
-  In future this will be removed
-  and we will stream into MwsrWriter
-end note
-
-note right of Recorder
-  A user is allowed to use the Recorder interface
-  for its abstraction. But its not recommended due
-  to its more complicated usage.
-end note
-
-note top
-  This diagram only illustrates the use-case of verbose logging.
-end note
 
 @enduml

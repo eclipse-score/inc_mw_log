@@ -1,6 +1,6 @@
 @startuml configuration_use_cases
-
 left to right direction
+title Configuration Use Cases
 
 actor "Developer,\nDebug Application\ndeployed on target" as Dev1
 actor "Developer,\nUnit testing" as Dev2  
