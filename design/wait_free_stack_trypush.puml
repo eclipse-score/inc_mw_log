@@ -1,5 +1,6 @@
 @startuml wait_free_stack_trypush
-title Wait Free Stack TryPush
+title "Wait Free Stack TryPush"
+
 start
 if (Stack capacity is full?) then (Yes)
 else (No)

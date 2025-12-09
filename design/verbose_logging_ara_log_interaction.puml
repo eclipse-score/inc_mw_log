@@ -1,4 +1,5 @@
 @startuml verbose_logging_ara_log_interaction
+title "Score Logging ARA Log Interaction"
 
 package "ara::log API" {
   class "Free Functions" as AraLogFunctions {

@@ -1,4 +1,5 @@
 @startuml
+title "Middleware Log Class Diagram"
 
 package "User Facing API"
 {

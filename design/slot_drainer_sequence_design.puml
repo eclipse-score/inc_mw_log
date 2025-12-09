@@ -1,41 +1,61 @@
 @startuml slot_drainer_sequence_design
+title "SlotDrainer Sequence Design"
 
-participant ":Backend" as Backend
-participant ":SlotDrainer" as SlotDrainer
-participant ":NonBlockingWriter" as NonBlockingWriter
-participant ":CircularBuffer" as CircularBuffer
-participant ":MessageBuilder" as MessageBuilder
-participant ":SlotAllocator<LogRecord>" as SlotAllocator
+participant "Backend" as Backend
+participant "SlotDrainer" as SlotDrainer
+participant "NonBlockingWriter" as NonBlockingWriter
+participant "CircularBuffer" as CircularBuffer
+participant "MessageBuilder" as MessageBuilder
+participant "SlotAllocator<LogRecord>" as SlotAllocator
 
 note over SlotDrainer : Slot Drainer Flush Sequence
 
-group "First Slot"
-Backend -> SlotDrainer : flush(ctx_id, log_level)
 activate SlotDrainer
+activate Backend
+activate NonBlockingWriter
+activate CircularBuffer
+activate SlotAllocator
+activate MessageBuilder
 
-SlotDrainer -> CircularBuffer : push()
-SlotDrainer -> CircularBuffer : pop()
+group "First Slot"
+Backend -> SlotDrainer : Flush()
+
+SlotDrainer -> MessageBuilder : GetNextSpan(log_record)
+
+SlotDrainer -> CircularBuffer : empty()
+CircularBuffer -> SlotDrainer: false
+
+SlotDrainer -> CircularBuffer : front()
+SlotDrainer -> CircularBuffer : pop_front()
+
+SlotDrainer -> CircularBuffer : empty()
+CircularBuffer -> SlotDrainer: false
+SlotDrainer -> CircularBuffer : front()
+
 SlotDrainer -> SlotAllocator : GetUnderlyingBufferFor(slot)
 SlotDrainer -> MessageBuilder : SetNextMessage(log_record)
 
+SlotDrainer -> NonBlockingWriter : FlushIntoFile()
+NonBlockingWriter -> SlotDrainer: kDone
+
+
 SlotDrainer -> MessageBuilder : GetNextSpan()
-SlotDrainer -> NonBlockingWriter : flush()
 end
 
 group "Last Slot"
 
-SlotDrainer -> CircularBuffer : pop()
-SlotDrainer -> SlotAllocator : GetUnderlyingBufferFor(slot)
-SlotDrainer -> MessageBuilder : SetNextMessage(log_record)
+SlotDrainer -> MessageBuilder : GetNextSpan()
+
+SlotDrainer -> NonBlockingWriter : FlushIntoFile()
+NonBlockingWriter -> SlotDrainer: kDone
 
 SlotDrainer -> MessageBuilder : GetNextSpan()
-SlotDrainer -> NonBlockingWriter : flush()
 
-SlotDrainer -> CircularBuffer : pop()
-CircularBuffer -> SlotDrainer: <empty>
+SlotDrainer -> CircularBuffer : empty()
+CircularBuffer -> SlotDrainer: true
 
 Backend <-- SlotDrainer
-deactivate SlotDrainer
+
 
 end
 
