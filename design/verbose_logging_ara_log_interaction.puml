@@ -9,16 +9,16 @@ package "ara::log API" {
   }
 }
 
-package "bmw::mw Log Implementation" {
-  class "Free Functions" as BmwMwLogFunctions {
-    + bmw::mw::LogError(): bmw::mw::LogStream
-    + bmw::mw::LogWarn(): bmw::mw::LogStream
-    + bmw::mw::LogInfo(): bmw::mw::LogStream
-    + bmw::mw::LogDebug(): bmw::mw::LogStream
+package "score::mw Log Implementation" {
+  class "Free Functions" as ScoreMwLogFunctions {
+    + score::mw::LogError(): score::mw::LogStream
+    + score::mw::LogWarn(): score::mw::LogStream
+    + score::mw::LogInfo(): score::mw::LogStream
+    + score::mw::LogDebug(): score::mw::LogStream
   }
 }
 
-AraLogFunctions --> BmwMwLogFunctions : facade
+AraLogFunctions --> ScoreMwLogFunctions : facade
 
 note top of AraLogFunctions
   AUTOSAR Adaptive Platform
@@ -27,8 +27,8 @@ note top of AraLogFunctions
   applications
 end note
 
-note bottom of BmwMwLogFunctions
-  BMW Middleware logging
+note bottom of ScoreMwLogFunctions
+  Score Middleware logging
   implementation providing
   the actual logging functionality
 end note
@@ -36,7 +36,7 @@ end note
 note on link
   ara::log functions act as
   a facade that delegates to
-  bmw::mw logging implementation
+  score::mw logging implementation
 end note
 
 @enduml

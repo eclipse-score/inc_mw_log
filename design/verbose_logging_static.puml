@@ -1,250 +1,374 @@
 @startuml
 
-package "User-Facing API" {
+package "User Facing API"
+{
 
-    class "Free Functions" as FreeFunctions <<utility>> {
-        + bmw::mw::LogFatal(): LogStream
-        + bmw::mw::LogError(): LogStream
-        + bmw::mw::LogWarn(): LogStream
-        + bmw::mw::LogInfo(): LogStream
-        + bmw::mw::LogDebug(): LogStream
-        + bmw::mw::LogVerbose(): LogStream
-        + bmw::mw::LogFatal(std::string_view): LogStream
-        + bmw::mw::LogError(std::string_view): LogStream
-        + bmw::mw::LogWarn(std::string_view): LogStream
-        + bmw::mw::LogInfo(std::string_view): LogStream
-        + bmw::mw::LogDebug(std::string_view): LogStream
-        + bmw::mw::LogVerbose(std::string_view): LogStream
-        + bmw::mw::GetDefaultLogRecorder(): Recorder&
-        + bmw::mw::test::SetLogRecorder(bmw::mw::log::Recorder *const): void
-    }
-
-    class bmw::mw::Logger {
-        - context_: LoggingIdentifier
-        + Logger(std::string_view ctxId)
-        + LogFatal(): LogStream
-        + LogError(): LogStream
-        + LogWarn(): LogStream
-        + LogInfo(): LogStream
-        + LogDebug(): LogStream
-        + LogVerbose(): LogStream
-        + WithLevel(LogLevel): log::LogStream
-        + IsLogEnabled(LogLevel): bool
-        + IsEnabled(LogLevel): bool
-        + GetContext(): std::string_view
-    }
-
+class score::mw::log::Logger {
++Logger(const std::string_view context) noexcept : void
+..
++GetContext() const noexcept : std::string_view
++IsEnabled(const LogLevel) const noexcept : bool
++IsLogEnabled(const LogLevel) const noexcept : bool
++LogDebug() const noexcept : log::LogStream
++LogError() const noexcept : log::LogStream
++LogFatal() const noexcept : log::LogStream
++LogInfo() const noexcept : log::LogStream
++LogVerbose() const noexcept : log::LogStream
++LogWarn() const noexcept : log::LogStream
++WithLevel(const LogLevel log_level) const noexcept : log::LogStream
+__
+-context_ : detail::LoggingIdentifier
 }
-
+}
 
 package "Not Mockable Part" {
 
-    struct LoggingIdentifier {}
-
-    class bmw::mw::log::detail::LogStreamFactory {
-        + GetStream(LogLevel, ctxId: std::string_view = "DFLT"): LogStream
-    }
-
-    class bmw::mw::LogStream {
-        - recorder_: Recorder&
-        - slot_handle_: amp::optional<SlotHandle>
-        - context_id_: detail::LoggingIdentifier
-        - log_level_: LogLevel
-        - LogStream(Recorder&, LogLevel, std::string_view)
-        + LogStream(LogStream&&)
-        + Flush(): void
-    }
-
-    class bmw::mw::log::SlotHandle {
-        - recorder_to_slot_: std::array<SlotIndex, kMaxRecorders>
-        - recorder_slot_available_: std::bitset<kMaxRecorders>
-        - selected_recorder_: RecorderIdentifier
-        + SlotHandle()
-        + SlotHandle(SlotIndex)
-        + GetSlotOfSelectedRecorder(): SlotIndex
-        + GetSlot(RecorderIdentifier): SlotIndex
-        + SetSlot(SlotIndex, RecorderIdentifier): void
-        + GetSelectedRecorder(): RecorderIdentifier
-        + SetSelectedRecorder(RecorderIdentifier): void
-        + IsRecorderActive(RecorderIdentifier): bool
-        + friend operator==(const SlotHandle& l_value, const SlotHandle& r_value): bool
-        + friend operator!=(const SlotHandle& l_value, const SlotHandle& r_value): bool
-        + kMaxRecorders: {static} constexpr std::size_t
-    }
-
-    class bmw::mw::log::detail::Runtime {
-        - Runtime(Recorder *const recorder)
-        - {static} Instance(Recorder *const): Runtime&
-        - logger_container_instance_: LoggerContainer
-        - recorder_instance_: Recorder
-        - default_recorder_: std::unique_ptr<Recorder>
-        + GetRecorder(): Recorder *
-        + SetRecorder(Recorder *): void__
-        + GetLoggerContainer(): bmw::mw::log::LoggerContainer&
-    }
-
-    struct SlotHandle::RecorderIdentifier {
-        + value: std::size_t
-    }
-
-    enum bmw::mw::LogLevel {
-        kOff = 0x00
-        kFatal = 0x01
-        kError = 0x02
-        kWarn = 0x03
-        kInfo = 0x04
-        kDebug = 0x05
-        kVerbose = 0x06
-    }
-
+class score::mw::log::LogStream {
++LogStream(const LogStream &) noexcept = deleted : void
++LogStream(LogStream &&) noexcept : void
+-LogStream(Recorder &, Recorder &, const LogLevel, const std::string_view) noexcept : void
++~LogStream() noexcept : void
+..
++operator=(const LogStream &) noexcept = deleted : LogStream &
++operator=(LogStream &&) noexcept = deleted : LogStream &
+..
++operator<T>(const T & value) noexcept : std::enable_if_t<LogStreamSupports<T>(), LogStream &>
++operator<T>(T char_ptr) : std::enable_if_t<IsCharPtrType<T>(), LogStream &>
++operator<std::size_t N>(const LogString::CharType (&)[N] array) noexcept : LogStream &
+..
+-CallOnRecorder<ReturnValue,ArgsOfFunction...,ArgsPassed...>(ReturnValue (Recorder::*)(ArgsOfFunction...) noexcept arbitrary_function, ArgsPassed &&... args) noexcept : ReturnValue
++Flush() noexcept : void
+-Log(const std::uint64_t) noexcept : LogStream &
+-Log<RawBufferType>(const RawBufferType &) noexcept : std::enable_if_t<IsLogRawBufferType<RawBufferType>(), LogStream &>
+-Log(const LogSlog2Message & value) noexcept : LogStream &
+-Log(const LogHex64 & value) noexcept : LogStream &
+-Log(const LogHex32 & value) noexcept : LogStream &
+-Log(const LogHex16 & value) noexcept : LogStream &
+-Log(const LogHex8 & value) noexcept : LogStream &
+-Log(const LogBin64 & value) noexcept : LogStream &
+-Log(const LogBin32 & value) noexcept : LogStream &
+-Log(const LogBin16 & value) noexcept : LogStream &
+-Log(const LogBin8 & value) noexcept : LogStream &
+-Log(const std::uint32_t) noexcept : LogStream &
+-Log(const std::uint16_t) noexcept : LogStream &
+-Log(const std::uint8_t) noexcept : LogStream &
+-Log(const std::int64_t) noexcept : LogStream &
+-Log(const std::int32_t) noexcept : LogStream &
+-Log(const std::int16_t) noexcept : LogStream &
+-Log(const std::int8_t) noexcept : LogStream &
+-Log(const LogString) noexcept : LogStream &
+-Log(const double) noexcept : LogStream &
+-Log(const float) noexcept : LogStream &
+-Log(const bool) noexcept : LogStream &
+-LogWithRecorder<T>(const T value) noexcept : LogStream &
+__
+-context_id_ : detail::LoggingIdentifier
+-fallback_recorder_ : Recorder &
+-log_level_ : LogLevel
+-recorder_ : Recorder &
+-slot_ : score::cpp::optional<SlotHandle>
 }
 
+enum score::mw::log::LogLevel {
+kOff
+kFatal
+kError
+kWarn
+kInfo
+kDebug
+kVerbose
+}
+
+class score::mw::log::detail::LoggingIdentifier {
++LoggingIdentifier(const std::string_view) noexcept : void
++LoggingIdentifier() noexcept = default : void
++LoggingIdentifier(const LoggingIdentifier &) noexcept = default : void
++LoggingIdentifier(LoggingIdentifier &&) noexcept = default : void
++~LoggingIdentifier() noexcept = default : void
+..
++operator=(const LoggingIdentifier & rhs) constexpr noexcept = default : LoggingIdentifier &
++operator=(LoggingIdentifier && rhs) constexpr noexcept = default : LoggingIdentifier &
+..
++GetStringView() const noexcept : std::string_view
+__
++data_ : std::array<std::string_view::value_type,kMaxLength>
+{static} +kMaxLength : const std::size_t
+}
+class score::mw::log::detail::LogStreamFactory {
+{static} +GetStream(const LogLevel, const std::string_view context_id = "DFLT") noexcept : LogStream
+__
+}
+
+class score::mw::log::detail::Runtime {
++Runtime(const Runtime &) noexcept = deleted : void
++Runtime(Runtime &&) noexcept = deleted : void
+-Runtime(Recorder *const recorder, score::cpp::pmr::memory_resource * memory_resource) noexcept : void
++~Runtime() = default : void
+..
++operator=(const Runtime &) noexcept = deleted : Runtime &
++operator=(Runtime &&) noexcept = deleted : Runtime &
+..
+{static} +GetFallbackRecorder() noexcept : Recorder &
+{static} +GetLoggerContainer() noexcept : score::mw::log::LoggerContainer &
+{static} +GetRecorder() noexcept : Recorder &
+{static} -Instance(Recorder *const recorder, score::cpp::pmr::memory_resource * memory_resource = score::cpp::pmr::get_default_resource()) noexcept : Runtime &
+{static} +SetRecorder(Recorder *const recorder, score::cpp::pmr::memory_resource * memory_resource = score::cpp::pmr::get_default_resource()) noexcept : void
+__
+-default_recorder_ : std::unique_ptr<Recorder>
+-logger_container_instance_ : LoggerContainer
+-recorder_instance_ : Recorder *
+}
+
+class score::mw::log::SlotHandle {
++SlotHandle() noexcept = default : void
++SlotHandle(const SlotIndex) noexcept : void
+..
++GetSelectedRecorder() const noexcept : RecorderIdentifier
++GetSlot(const RecorderIdentifier) const noexcept : SlotIndex
++GetSlotOfSelectedRecorder() const noexcept : SlotIndex
++IsRecorderActive(const RecorderIdentifier) const noexcept : bool
++SetSelectedRecorder(const RecorderIdentifier) noexcept : void
++SetSlot(const SlotIndex, const RecorderIdentifier recorder = {{}}) noexcept : void
+__
+{static} +kMaxRecorders : const std::size_t
+-recorder_slot_available_ : std::bitset<kMaxRecorders>
+-recorder_to_slot_ : std::array<SlotIndex,kMaxRecorders>
+-selected_recorder_ : RecorderIdentifier
+}
+
+}
 
 package "Mockable Part" {
 
-    class bmw::mw::log::detail::VerbosePayload {
-        - buffer_: std::reference_wrapper<ByteVector>
-        + VerbosePayload(std::size_t, std::string&)
-        + Put(const Byte *, std::size_t): void
-        + Put(const ReserveCallback, std::size_t): std::size_t
-        + GetSpan(): amp::span<const std::uint8_t>
-        + Reset(): void
-        + WillOverflow(std::size_t): bool
-        + RemainingCapacity(): std::size_t
-        + SetBuffer(ByteVector&): void
-    }
+class "score::mw::log::detail::WaitFreeStack<Element>" as score::mw::log::detail::WaitFreeStack_of_Element {
+    + WaitFreeStack(std::size_t)
+    + TryPush(Element&&): amp::optional<std::reference_wrapper<Element>>
+    + Find(const FindPredicate<Element>&): amp::optional<std::reference_wrapper<Element>>
+    --
+    - elements_: std::vector<amp::optional<Element>>
+    - elements_written_: std::vector<std::atomic_int>
+    - write_index_: AtomicIndex
+    - capacity_full_: AtomicBool
+}
 
-    struct LogEntry {
-        + appId: dltid_t
-        + ctxId: dltid_t
-        + sessionId: dltid_t
-        + logLevel: std::uint8_t
-        + num_of_args: std::int8_t
-        + payload: std::string
-    }
+class score::mw::log::detail::EmptyRecorder {
++IsLogEnabled(const LogLevel &, const std::string_view context) const noexcept : bool
++Log(const SlotHandle &, const double) noexcept : void
++Log(const SlotHandle &, const LogSlog2Message) noexcept : void
++Log(const SlotHandle &, const LogRawBuffer) noexcept : void
++Log(const SlotHandle &, const LogBin64) noexcept : void
++Log(const SlotHandle &, const LogBin32) noexcept : void
++Log(const SlotHandle &, const LogBin16) noexcept : void
++Log(const SlotHandle &, const LogBin8) noexcept : void
++Log(const SlotHandle &, const LogHex64) noexcept : void
++Log(const SlotHandle &, const LogHex32) noexcept : void
++Log(const SlotHandle &, const LogHex16) noexcept : void
++Log(const SlotHandle &, const LogHex8) noexcept : void
++Log(const SlotHandle &, const std::string_view) noexcept : void
++Log(const SlotHandle &, const float) noexcept : void
++Log(const SlotHandle &, const std::int64_t) noexcept : void
++Log(const SlotHandle &, const std::uint64_t) noexcept : void
++Log(const SlotHandle &, const std::int32_t) noexcept : void
++Log(const SlotHandle &, const std::uint32_t) noexcept : void
++Log(const SlotHandle &, const std::int16_t) noexcept : void
++Log(const SlotHandle &, const std::uint16_t) noexcept : void
++Log(const SlotHandle &, const std::int8_t) noexcept : void
++Log(const SlotHandle &, const std::uint8_t) noexcept : void
++Log(const SlotHandle &, const bool data) noexcept : void
++StartRecord(const std::string_view context_id, const LogLevel log_level) noexcept : score::cpp::optional<SlotHandle>
++StopRecord(const SlotHandle & slot) noexcept : void
+__
+}
 
-    class bmw::mw::log::detail::LogRecord {
-        - logEntry_: LogEntry
-        - verbosePayload_: VerbosePayload
-        + getLogEntry(): LogEntry&
-        - getLogEntry() const: cosnt LogEntry&
-        - getVerbosePayload(): detail::VerbosePayload&
-        - getVerbosePayload() const: const detail::VerbosePayload&
-    }
+class score::mw::log::detail::LogEntry {
+__
++app_id : LoggingIdentifier
++ctx_id : LoggingIdentifier
++header_buffer : ByteVector
++log_level : LogLevel
++num_of_args : std::uint8_t
++payload : ByteVector
++timestamp_steady_nsec : std::uint64_t
++timestamp_system_nsec : std::uint64_t
+}
 
-    entity TRACE_MACRO {}
+class score::mw::log::detail::TextRecorder {
++TextRecorder(const detail::Configuration & config, std::unique_ptr<detail::Backend> backend, const bool check_log_level_for_console) noexcept : void
++TextRecorder(TextRecorder &&) noexcept = deleted : void
++TextRecorder(const TextRecorder &) noexcept = deleted : void
++~TextRecorder() = default : void
+..
++operator=(TextRecorder &&) noexcept = deleted : TextRecorder &
++operator=(const TextRecorder &) noexcept = deleted : TextRecorder &
+..
++IsLogEnabled(const LogLevel &, const std::string_view) const noexcept : bool
++Log(const SlotHandle & slot, const double data) noexcept : void
++Log(const SlotHandle & slot, const LogSlog2Message data) noexcept : void
++Log(const SlotHandle & slot, const LogBin64 data) noexcept : void
++Log(const SlotHandle & slot, const LogBin32 data) noexcept : void
++Log(const SlotHandle & slot, const LogBin16 data) noexcept : void
++Log(const SlotHandle & slot, const LogBin8 data) noexcept : void
++Log(const SlotHandle & slot, const LogHex64 data) noexcept : void
++Log(const SlotHandle & slot, const LogHex32 data) noexcept : void
++Log(const SlotHandle & slot, const LogHex16 data) noexcept : void
++Log(const SlotHandle & slot, const LogHex8 data) noexcept : void
++Log(const SlotHandle & slot, const std::string_view data) noexcept : void
++Log(const SlotHandle & slot, const LogRawBuffer data) noexcept : void
++Log(const SlotHandle & slot, const float data) noexcept : void
++Log(const SlotHandle & slot, const std::int64_t data) noexcept : void
++Log(const SlotHandle & slot, const std::uint64_t data) noexcept : void
++Log(const SlotHandle & slot, const std::int32_t data) noexcept : void
++Log(const SlotHandle & slot, const std::uint32_t data) noexcept : void
++Log(const SlotHandle & slot, const std::int16_t data) noexcept : void
++Log(const SlotHandle & slot, const std::uint16_t data) noexcept : void
++Log(const SlotHandle & slot, const std::int8_t data) noexcept : void
++Log(const SlotHandle & slot, const std::uint8_t data) noexcept : void
++Log(const SlotHandle & slot, const bool data) noexcept : void
++StartRecord(const std::string_view context_id, const LogLevel log_level) noexcept : score::cpp::optional<SlotHandle>
++StopRecord(const SlotHandle & slot) noexcept : void
+__
+-backend_ : std::unique_ptr<detail::Backend>
+-check_log_level_for_console_ : bool
+-config_ : detail::Configuration
+}
+class score::mw::log::detail::FileRecorder {
++FileRecorder(const detail::Configuration & config, std::unique_ptr<detail::Backend> backend) : void
+..
++IsLogEnabled(const LogLevel &, const std::string_view context) const noexcept : bool
++Log(const SlotHandle &, const double) noexcept : void
++Log(const SlotHandle &, const LogSlog2Message) noexcept : void
++Log(const SlotHandle &, const LogRawBuffer) noexcept : void
++Log(const SlotHandle &, const LogBin64) noexcept : void
++Log(const SlotHandle &, const LogBin32) noexcept : void
++Log(const SlotHandle &, const LogBin16) noexcept : void
++Log(const SlotHandle &, const LogBin8) noexcept : void
++Log(const SlotHandle &, const LogHex64) noexcept : void
++Log(const SlotHandle &, const LogHex32) noexcept : void
++Log(const SlotHandle &, const LogHex16) noexcept : void
++Log(const SlotHandle &, const LogHex8) noexcept : void
++Log(const SlotHandle &, const std::string_view) noexcept : void
++Log(const SlotHandle &, const float) noexcept : void
++Log(const SlotHandle &, const std::int64_t) noexcept : void
++Log(const SlotHandle &, const std::uint64_t) noexcept : void
++Log(const SlotHandle &, const std::int32_t) noexcept : void
++Log(const SlotHandle &, const std::uint32_t) noexcept : void
++Log(const SlotHandle &, const std::int16_t) noexcept : void
++Log(const SlotHandle &, const std::uint16_t) noexcept : void
++Log(const SlotHandle &, const std::int8_t) noexcept : void
++Log(const SlotHandle &, const std::uint8_t) noexcept : void
++Log(const SlotHandle &, const bool data) noexcept : void
++StartRecord(const std::string_view context_id, const LogLevel log_level) noexcept : score::cpp::optional<SlotHandle>
++StopRecord(const SlotHandle & slot) noexcept : void
+__
+-backend_ : std::unique_ptr<detail::Backend>
+-config_ : detail::Configuration
+}
 
-    entity Configuration {}
+class score::mw::log::detail::LogRecord {
++LogRecord(const std::size_t max_payload_size_bytes = 255U) noexcept : void
++LogRecord(const LogRecord &) noexcept : void
++LogRecord(LogRecord &&) noexcept : void
++~LogRecord() noexcept = default : void
+..
++operator=(const LogRecord &) noexcept : LogRecord &
++operator=(LogRecord &&) noexcept : LogRecord &
+..
++getLogEntry() noexcept : LogEntry &
++getLogEntry() const noexcept : const LogEntry &
++getVerbosePayload() noexcept : detail::VerbosePayload &
++getVerbosePayload() const noexcept : const detail::VerbosePayload &
+__
+-logEntry_ : LogEntry
+-verbosePayload_ : detail::VerbosePayload
+}
 
-    entity StatisticsReporter {}
+abstract score::mw::log::Recorder {
++Recorder() = default : void
++Recorder(const Recorder &) noexcept = deleted : void
++Recorder(Recorder &&) noexcept = deleted : void
++~Recorder() : void
+..
++operator=(const Recorder &) noexcept = deleted : Recorder &
++operator=(Recorder &&) noexcept = deleted : Recorder &
+..
+{abstract} +IsLogEnabled(const LogLevel &, const std::string_view context) const noexcept = 0 : bool
+{abstract} +Log(const SlotHandle &, const double) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogSlog2Message) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogRawBuffer) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogBin64) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogBin32) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogBin16) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogBin8) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogHex64) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogHex32) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogHex16) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const LogHex8) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::string_view) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const float) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::int64_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::uint64_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::int32_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::uint32_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::int16_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::uint16_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::int8_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const std::uint8_t) noexcept = 0 : void
+{abstract} +Log(const SlotHandle &, const bool data) noexcept = 0 : void
+{abstract} +StartRecord(const std::string_view context_id, const LogLevel log_level) noexcept = 0 : score::cpp::optional<SlotHandle>
+{abstract} +StopRecord(const SlotHandle & slot) noexcept = 0 : void
+__
+}
 
-    class bmw::mw::log::detail::DataRouterBackend {
-        + ReserveSlot(): amp::optional<SlotHandle>
-        + FlushSlot(const SlotHandle&)
-        + GetLogRecord(const SlotHandle&): LogRecord
-        - buffer_: CircularAllocator<bmw::mw::log::detail::LogRecord>
-        - message_client_: std::unique_ptr<DatarouterMessageClient>
-    }
-
-    interface bmw::mw::log::detail::Backend {
-        + ReserveSlot(): amp::optional<SlotHandle>
-        + FlushSlot(const SlotHandle&)
-        + GetLogRecord(const SlotHandle&): LogRecord
-    }
-
-    interface bmw::mw::log::Recorder {
-        + Recorder()
-        + StartRecord(context_id: std::string_view, LogLevel): amp::optional<SlotHandle>
-        + StopRecord(const SlotHandle&): void
-        + Log(SlotHandle, std::uint8_t): void
-        + Log(SlotHandle, std::int8_t): void
-    }
-
-    class DataRouterRecorder {}
-
-    class TextRecorder {}
-
-    class FileRecorder {}
-
-    class EmptyRecorder {}
-
-    entity TextFormat {}
-
-    class bmw::mw::log::LoggerContainer {
-        - InsertNewLogger(std::string_view): Logger&
-        - FindExistingLogger(std::string_view): amp::optional<std::reference_wrapper<Logger>>
-        - stack_: WaitFreeStack<Logger>
-        - default_logger_: Logger
-        + GetLogger(std::string_view): Logger&
-        + GetCapacity(): std::size_t
-        + GetDefaultLogger(): Logger&
-    }
-
-    class "bmw::mw::log::detail::WaitFreeStack<Element>" as bmw::mw::log::detail::WaitFreeStack_of_Element {
-        - elements_: std::vector<amp::optional<Element>>
-        - elements_written_: std::vector<std::atomic_int>
-        - write_index_: AtomicIndex
-        - capacity_full_: AtomicBool
-        + WaitFreeStack(std::size_t)
-        + TryPush(Element&&): amp::optional<std::reference_wrapper<Element>>
-        + Find(const FindPredicate<Element>&): amp::optional<std::reference_wrapper<Element>>
-    }
+class score::mw::log::LoggerContainer {
++LoggerContainer() : void
+..
+-FindExistingLogger(const std::string_view context) noexcept : score::cpp::optional<std::reference_wrapper<Logger>>
++GetCapacity() const noexcept : size_t
++GetDefaultLogger() noexcept : Logger &
++GetLogger(const std::string_view context) noexcept : Logger &
+-InsertNewLogger(const std::string_view context) noexcept : Logger &
+__
+-default_logger_ : Logger
+-stack_ : detail::WaitFreeStack<Logger,memory::shared::AtomicIndirectorReal>
+}
 
 }
 
-
-bmw::mw::Logger --* LoggingIdentifier: owns
-bmw::mw::Logger --|> bmw::mw::log::detail::LogStreamFactory: uses
-bmw::mw::Logger --* bmw::mw::log::LoggerContainer: owns
-
-FreeFunctions --|> bmw::mw::log::detail::LogStreamFactory: uses
-FreeFunctions --|> bmw::mw::log::detail::Runtime
-
-bmw::mw::log::detail::LogStreamFactory --|> bmw::mw::LogStream: create
-bmw::mw::log::detail::LogStreamFactory --|> bmw::mw::log::detail::Runtime: get current record
-
-bmw::mw::log::SlotHandle --* bmw::mw::LogStream: owns
-
-bmw::mw::log::detail::VerbosePayload --* bmw::mw::log::detail::LogRecord: << creates and fills >>
-
-LogEntry --* bmw::mw::log::detail::LogRecord: << creates and fills >>
-
-bmw::mw::log::detail::LogRecord --* bmw::mw::log::detail::DataRouterBackend: << creates and fills >>
-
-Configuration --* DataRouterRecorder: get application specific config
-
-StatisticsReporter --* DataRouterRecorder
-
-bmw::mw::log::detail::DataRouterBackend --* DataRouterRecorder: << reserve and flush slots >>
-bmw::mw::log::detail::DataRouterBackend --|> TRACE_MACRO: << on sync >>
-bmw::mw::log::detail::DataRouterBackend ..|> bmw::mw::log::detail::Backend
-
-DataRouterRecorder --* bmw::mw::log::detail::Runtime: owns statically
-DataRouterRecorder ..|> bmw::mw::log::Recorder
-TextRecorder ..|> bmw::mw::log::Recorder
-FileRecorder ..|> bmw::mw::log::Recorder
-EmptyRecorder ..|> bmw::mw::log::Recorder
-
-bmw::mw::log::Recorder --o bmw::mw::LogStream: records data
-bmw::mw::log::Recorder ..> TextFormat: Log
-
-bmw::mw::log::LoggerContainer --* bmw::mw::log::detail::Runtime: owns
-
-bmw::mw::log::detail::WaitFreeStack_of_Element --* bmw::mw::log::LoggerContainer: owns
-
+score::mw::log::detail::LogStreamFactory ..> score::mw::log::LogLevel
+score::mw::log::detail::LogStreamFactory ..> score::mw::log::LogStream
+score::mw::log::detail::Runtime o-- score::mw::log::LoggerContainer : -logger_container_instance_
+score::mw::log::detail::Runtime --> score::mw::log::Recorder : -recorder_instance_
+score::mw::log::detail::Runtime o-- score::mw::log::Recorder : -default_recorder_
+score::mw::log::detail::EmptyRecorder ..> score::mw::log::LogLevel
+score::mw::log::detail::EmptyRecorder ..> score::mw::log::SlotHandle
+score::mw::log::Recorder <|-- score::mw::log::detail::EmptyRecorder
+score::mw::log::detail::LogEntry o-- score::mw::log::detail::LoggingIdentifier : +app_id
+score::mw::log::detail::LogEntry o-- score::mw::log::detail::LoggingIdentifier : +ctx_id
+score::mw::log::detail::LogEntry o-- score::mw::log::LogLevel : +log_level
+score::mw::log::detail::LogRecord o-- score::mw::log::detail::LogEntry : -logEntry_
+score::mw::log::detail::TextRecorder ..> score::mw::log::LogLevel
+score::mw::log::detail::TextRecorder ..> score::mw::log::SlotHandle
+score::mw::log::Recorder <|-- score::mw::log::detail::TextRecorder
+score::mw::log::detail::FileRecorder ..> score::mw::log::LogLevel
+score::mw::log::detail::FileRecorder ..> score::mw::log::SlotHandle
+score::mw::log::Recorder <|-- score::mw::log::detail::FileRecorder
+score::mw::log::Recorder ..> score::mw::log::LogLevel
+score::mw::log::Recorder ..> score::mw::log::SlotHandle
+score::mw::log::LogStream --> score::mw::log::Recorder : -recorder_
+score::mw::log::LogStream --> score::mw::log::Recorder : -fallback_recorder_
+score::mw::log::LogStream o-- score::mw::log::SlotHandle : -slot_
+score::mw::log::LogStream o-- score::mw::log::detail::LoggingIdentifier : -context_id_
+score::mw::log::LogStream o-- score::mw::log::LogLevel : -log_level_
+score::mw::log::LogStream <.. score::mw::log::detail::LogStreamFactory : +<<friend>>
+score::mw::log::Logger ..> score::mw::log::LogStream
+score::mw::log::Logger ..> score::mw::log::LogLevel
+score::mw::log::Logger o-- score::mw::log::detail::LoggingIdentifier : -context_
+score::mw::log::LoggerContainer o-- score::mw::log::detail::WaitFreeStack_of_Element : -stack_
+score::mw::log::LoggerContainer o-- score::mw::log::Logger : -default_logger_
 
 note "This diagram only illustrates the use-case of verbose logging." as N0
 note "A user is allowed to use the Recorder interface for its abstraction, but it is not recommended due to its more complicated usage." as N1
-note "For the time being, DataRouterRecorder will not only be a facade but also contain DLT specific logic. In this case, calling StartRecord() and StopRecord." as N2
-note "In future this will be removed and we will stream into MwsrWriter." as N3
 
-N1 .. bmw::mw::log::Recorder
-
-N2 .. DataRouterRecorder
-
-N3 .. bmw::mw::log::detail::VerbosePayload
-N3 .. LogEntry
-N3 .. TRACE_MACRO
-
+N1 .. score::mw::log::Recorder
 
 @enduml
